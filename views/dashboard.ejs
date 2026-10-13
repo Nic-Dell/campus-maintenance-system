@@ -1,0 +1,60 @@
+<%- include('partials/header') %>
+<main class="page-wrap">
+  <% if (notice) { %><div class="alert alert-<%= notice.type %>"><%= notice.message %></div><% } %>
+  <section class="welcome-row">
+    <div><span class="eyebrow"><%= staffView ? 'CAMPUS OPERATIONS' : 'YOUR CAMPUS, WELL CARED FOR' %></span><h1><%= staffView ? 'Maintenance overview' : `Hello, ${user.full_name.split(' ')[0]}.` %></h1><p><%= staffView ? 'Every request is a chance to make campus better.' : 'A great place to learn starts with a space that works.' %></p></div>
+    <a href="/requests/new" class="btn btn-primary request-cta"><span class="plus-mark">＋</span> New request</a>
+  </section>
+
+  <section class="stats-grid" aria-label="Request summary">
+    <article class="stat-card stat-total"><div class="stat-top"><span>Total requests</span><span class="stat-icon">◫</span></div><strong><%= stats.total %></strong><small><%= staffView ? 'Across campus' : 'Submitted by you' %></small></article>
+    <article class="stat-card stat-open"><div class="stat-top"><span>Open</span><span class="status-dot dot-open"></span></div><strong><%= stats.open %></strong><small>Awaiting attention</small></article>
+    <article class="stat-card stat-progress"><div class="stat-top"><span>In progress</span><span class="status-dot dot-progress"></span></div><strong><%= stats.inProgress %></strong><small>Being worked on</small></article>
+    <article class="stat-card stat-resolved"><div class="stat-top"><span>Resolved</span><span class="status-dot dot-resolved"></span></div><strong><%= stats.resolved %></strong><small>Good as new</small></article>
+  </section>
+
+  <section class="pulse-panel">
+    <div class="pulse-copy"><span class="pulse-orbit">✳</span><div><span class="eyebrow">A LITTLE CAMPUS INTELLIGENCE</span><h2>Campus Pulse</h2><p>We connect repeated reports by building and category, so emerging maintenance hotspots get noticed sooner.</p></div></div>
+    <% if (hotspots.length) { %>
+      <div class="pulse-hotspots">
+        <% hotspots.forEach((spot) => { %>
+          <a class="hotspot-card" href="/dashboard?q=<%= encodeURIComponent(spot.building) %>">
+            <span class="hotspot-signal"><%= spot.priority_score >= 4 ? '●' : '↗' %></span>
+            <span class="hotspot-main"><strong><%= spot.building %></strong><small><%= spot.category %> · <%= spot.reports %> open reports</small></span>
+            <span class="hotspot-arrow" aria-hidden="true">→</span>
+          </a>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="pulse-empty"><span>✦</span><div><strong>All clear for now.</strong><small>When 2 or more open reports share a campus location and category, that hotspot appears here.</small></div></div>
+    <% } %>
+  </section>
+
+  <section class="requests-section">
+    <div class="section-heading"><div><span class="eyebrow">THE DETAILS</span><h2><%= staffView ? 'Campus requests' : 'Your requests' %></h2></div><span class="result-count"><%= requests.length %><%= requests.length === 100 ? '+' : '' %> shown</span></div>
+    <form action="/dashboard" method="GET" class="filter-bar">
+      <div class="search-wrap"><span aria-hidden="true">⌕</span><input type="search" name="q" value="<%= search %>" placeholder="Search location, category or title…" aria-label="Search requests"></div>
+      <select name="status" class="form-select filter-select" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        <% ['Open', 'In Progress', 'Resolved'].forEach((item) => { %><option value="<%= item %>" <%= status === item ? 'selected' : '' %>><%= item %></option><% }) %>
+      </select>
+      <button class="btn btn-filter" type="submit">Filter</button>
+      <% if (search || status) { %><a class="clear-filter" href="/dashboard">Clear</a><% } %>
+    </form>
+    <% if (requests.length) { %>
+      <div class="request-list">
+        <% requests.forEach((request) => { %>
+          <a class="request-row" href="/requests/<%= request.id %>">
+            <div class="request-category-icon icon-<%= request.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') %>"><%= ({Electrical:'ϟ',Plumbing:'≈','Heating & Cooling':'☼',Cleaning:'✧',Furniture:'▱',Safety:'＋',Technology:'⌘',Other:'✳'})[request.category] %></div>
+            <div class="request-row-main"><div class="request-title-line"><strong><%= request.title %></strong><span class="priority priority-<%= request.priority.toLowerCase() %>"><span></span><%= request.priority %></span></div><div class="request-meta"><span><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></span><span class="meta-divider">·</span><span><%= request.category %></span><% if (staffView) { %><span class="meta-divider">·</span><span>By <%= request.reporter_name %></span><% } %></div></div>
+            <div class="request-row-side"><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span><small><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleDateString() %></small></div>
+            <span class="row-chevron" aria-hidden="true">›</span>
+          </a>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state"><span class="empty-illustration">⌂</span><h3><%= search || status ? 'No matching requests' : 'Nothing needs fixing. Yet.' %></h3><p><%= search || status ? 'Try a different search or clear your filters.' : staffView ? 'New campus reports will show up here.' : 'When something around campus needs attention, this is where your request will live.' %></p><% if (!search && !status && !staffView) { %><a class="btn btn-primary" href="/requests/new">Report a maintenance issue</a><% } %></div>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/footer') %>

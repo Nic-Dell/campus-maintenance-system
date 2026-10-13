@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<main class="page-wrap narrow-page">
+  <a href="/dashboard" class="back-link">← <span>Back to dashboard</span></a>
+  <section class="form-heading"><span class="eyebrow">WE’RE LISTENING</span><h1>What needs attention?</h1><p>Share a few details and the right campus team can get on it.</p></section>
+  <section class="form-card">
+    <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+    <form action="/requests" method="POST">
+      <label class="field-label" for="title">Give it a short title</label>
+      <input id="title" name="title" type="text" class="form-control" placeholder="e.g. Flickering lights in the study room" value="<%= values.title || '' %>" minlength="5" maxlength="100" required>
+      <div class="form-row">
+        <div><label class="field-label" for="category">Category</label><select id="category" name="category" class="form-select" required><option value="">Choose a category</option><% categories.forEach((category) => { %><option value="<%= category %>" <%= values.category === category ? 'selected' : '' %>><%= category %></option><% }) %></select></div>
+        <div><label class="field-label" for="priority">How urgent?</label><select id="priority" name="priority" class="form-select" required><% priorities.forEach((priority) => { %><option value="<%= priority %>" <%= (values.priority || 'Normal') === priority ? 'selected' : '' %>><%= priority %></option><% }) %></select></div>
+      </div>
+      <div class="form-row">
+        <div><label class="field-label" for="building">Building</label><select id="building" name="building" class="form-select" required><option value="">Choose a location</option><% buildings.forEach((building) => { %><option value="<%= building %>" <%= values.building === building ? 'selected' : '' %>><%= building %></option><% }) %></select></div>
+        <div><label class="field-label" for="room">Room or area <span class="optional-label">Optional</span></label><input id="room" name="room" type="text" class="form-control" placeholder="e.g. Room 204 or east entrance" value="<%= values.room || '' %>" maxlength="40"></div>
+      </div>
+      <label class="field-label" for="description">Tell us what’s going on</label>
+      <textarea id="description" name="description" class="form-control" rows="5" placeholder="What did you notice? When did it start? Is there anything else that would help our team?" minlength="20" maxlength="2000" required><%= values.description || '' %></textarea>
+      <div class="form-note"><span>✦</span> Your report helps the whole campus. Similar reports are grouped in Campus Pulse.</div>
+      <div class="form-actions"><a href="/dashboard" class="btn btn-quiet">Cancel</a><button type="submit" class="btn btn-primary">Submit request <span aria-hidden="true">→</span></button></div>
+    </form>
+  </section>
+</main>
+<%- include('partials/footer') %>

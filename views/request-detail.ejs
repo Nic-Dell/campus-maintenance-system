@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+<main class="page-wrap narrow-page">
+  <a href="/dashboard" class="back-link">← <span>Back to dashboard</span></a>
+  <% if (notice) { %><div class="alert alert-<%= notice.type %>"><%= notice.message %></div><% } %>
+  <section class="detail-card">
+    <div class="detail-topline"><span class="eyebrow">REQUEST #<%= String(request.id).padStart(4, '0') %></span><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span></div>
+    <h1><%= request.title %></h1>
+    <div class="detail-tags"><span><%= request.category %></span><span><%= request.priority %> priority</span></div>
+    <p class="detail-description"><%= request.description %></p>
+    <div class="detail-facts"><div><span>LOCATION</span><strong><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></strong></div><div><span>REPORTED BY</span><strong><%= request.reporter_name %></strong></div><div><span>SUBMITTED</span><strong><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleString() %></strong></div></div>
+    <% if (staffView) { %>
+      <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update">
+        <div><span class="eyebrow">STAFF WORKSPACE</span><h2>Update this request</h2><p>Every status change is added to the request timeline.</p></div>
+        <label class="field-label" for="status">Status</label>
+        <select id="status" name="status" class="form-select"><% statuses.forEach((status) => { %><option value="<%= status %>" <%= request.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select>
+        <label class="field-label mt-3" for="note">Update note <span class="optional-label">Optional</span></label>
+        <input id="note" name="note" type="text" class="form-control" maxlength="240" placeholder="Add a short note for the reporter">
+        <button type="submit" class="btn btn-primary mt-3">Save update</button>
+      </form>
+    <% } %>
+    <div class="timeline-heading"><div><span class="eyebrow">KEEPING YOU IN THE LOOP</span><h2>Request timeline</h2></div></div>
+    <ol class="timeline">
+      <% updates.forEach((update) => { %><li><span class="timeline-marker"></span><div><strong><%= update.status %></strong><p><%= update.note %></p><small><%= update.actor_name %> · <%= new Date(`${update.created_at.replace(' ', 'T')}Z`).toLocaleString() %></small></div></li><% }) %>
+    </ol>
+    <% if (!staffView && request.status === 'Open') { %><form action="/requests/<%= request.id %>/delete" method="POST" class="withdraw-form" onsubmit="return confirm('Withdraw this open request?')"><button type="submit" class="btn btn-quiet danger-quiet">Withdraw this request</button></form><% } %>
+  </section>
+</main>
+<%- include('partials/footer') %>
