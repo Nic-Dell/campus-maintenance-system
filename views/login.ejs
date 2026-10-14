@@ -1,10 +1,10 @@
 <%- include('partials/header') %>
 <main class="auth-layout">
   <section class="auth-story">
-    <span class="eyebrow light-eyebrow">CAMPUS CARE, CONNECTED</span>
-    <h1>A better campus<br>starts with <em>being heard.</em></h1>
-    <p>One place to report a problem, follow its progress, and help make every campus space work better.</p>
-    <div class="story-proof"><span class="proof-mark">✦</span><span>Good spaces make room for great things.</span></div>
+    <span class="eyebrow light-eyebrow">CAMPUS FACILITIES SERVICE</span>
+    <h1>Campus maintenance<br><em>service portal.</em></h1>
+    <p>Submit campus requests, track maintenance progress, and review service updates through the campus portal.</p>
+    <div class="story-proof"><span class="proof-mark">CC</span><span>Secure access for the campus community.</span></div>
   </section>
   <section class="auth-card">
     <div class="auth-card-heading"><span class="eyebrow">WELCOME BACK</span><h2>Sign in to your campus</h2><p>Pick up where you left off.</p></div>
@@ -15,10 +15,10 @@
       <input id="email" name="email" type="email" class="form-control" placeholder="you@campus.edu" value="<%= values.email || '' %>" autocomplete="username" maxlength="254" required>
       <label class="field-label mt-3" for="password">Password</label>
       <input id="password" name="password" type="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
-      <button type="submit" class="btn btn-primary w-100 mt-4">Sign in <span aria-hidden="true">→</span></button>
+      <button type="submit" class="btn btn-primary w-100 auth-submit">Sign in <span aria-hidden="true">→</span></button>
     </form>
     <p class="auth-switch">New to Campus Care? <a href="/register">Create an account</a></p>
-    <div class="auth-footnote"><span class="secure-dot"></span>Your campus account is private and secure.</div>
+    <div class="auth-footnote"><span class="secure-dot"></span>Administrators sign in with the account configured for the system.</div>
   </section>
 </main>
 <%- include('partials/footer') %>

@@ -1,6 +1,9 @@
 /node_modules/
 /.env
 /data/
+*.sql
+*.sql.gz
+*-uploads/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

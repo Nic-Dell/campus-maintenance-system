@@ -1,10 +1,10 @@
 <%- include('partials/header') %>
 <main class="auth-layout">
   <section class="auth-story">
-    <span class="eyebrow light-eyebrow">A CAMPUS THAT WORKS FOR EVERYONE</span>
-    <h1>Small fixes.<br><em>Big difference.</em></h1>
-    <p>Help your campus team see what needs attention. Submit a maintenance request in minutes and follow it all the way to resolved.</p>
-    <div class="story-proof"><span class="proof-mark">✦</span><span>Every great campus is a work in progress.</span></div>
+    <span class="eyebrow light-eyebrow">CAMPUS FACILITIES SERVICE</span>
+    <h1>A well-maintained campus<br><em>supports learning.</em></h1>
+    <p>Register with your campus ID to submit or manage campus requests. An administrator verifies each account before access is enabled.</p>
+    <div class="story-proof"><span class="proof-mark">CC</span><span>Account access is verified by campus administration.</span></div>
   </section>
   <section class="auth-card">
     <div class="auth-card-heading"><span class="eyebrow">GET STARTED</span><h2>Create your account</h2><p>Join your campus maintenance community.</p></div>
@@ -14,17 +14,34 @@
       <input id="full_name" name="full_name" type="text" class="form-control" placeholder="Your full name" value="<%= values.full_name || '' %>" minlength="2" maxlength="80" autocomplete="name" required>
       <label class="field-label mt-3" for="email">Campus email</label>
       <input id="email" name="email" type="email" class="form-control" placeholder="you@campus.edu" value="<%= values.email || '' %>" maxlength="254" autocomplete="email" required>
+      <label class="field-label mt-3" for="unique_id">Campus ID number</label>
+      <input id="unique_id" name="unique_id" type="text" class="form-control" placeholder="Your unique campus ID" value="<%= values.unique_id || '' %>" inputmode="numeric" pattern="[0-9]{4,32}" minlength="4" maxlength="32" autocomplete="off" required>
       <label class="field-label mt-3" for="password">Password</label>
       <input id="password" name="password" type="password" class="form-control" placeholder="At least 8 characters" minlength="8" maxlength="200" autocomplete="new-password" required>
       <label class="field-label mt-3" for="role">I’m joining as a</label>
       <select id="role" name="role" class="form-select" required>
         <option value="student" <%= values.role === 'student' ? 'selected' : '' %>>Student</option>
         <option value="faculty" <%= values.role === 'faculty' ? 'selected' : '' %>>Faculty member</option>
+        <option value="staff" <%= values.role === 'staff' ? 'selected' : '' %>>Technical team</option>
       </select>
-      <button type="submit" class="btn btn-primary w-100 mt-4">Create account <span aria-hidden="true">→</span></button>
+      <fieldset class="specialty-fieldset <%= values.role === 'staff' ? '' : 'd-none' %>" id="registration-specialties">
+        <legend class="field-label">Technical specialties</legend>
+        <p class="profile-help">Select every maintenance category you are qualified to receive.</p>
+        <div class="category-check-grid"><% categories.forEach((category) => { %><label><input type="checkbox" name="categories" value="<%= category %>" <%= (values.categories || []).includes(category) ? 'checked' : '' %>><span><%= category %></span></label><% }) %></div>
+      </fieldset>
+      <button type="submit" class="btn btn-primary w-100 registration-submit">Submit for verification <span aria-hidden="true">→</span></button>
     </form>
     <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
-    <div class="auth-footnote"><span class="secure-dot"></span>Staff and administrator accounts are provisioned securely.</div>
+    <div class="auth-footnote"><span class="secure-dot"></span>An administrator must verify your campus ID before sign-in.</div>
   </section>
 </main>
+<script>
+  const roleField = document.getElementById('role');
+  const specialtyFieldset = document.getElementById('registration-specialties');
+  const updateSpecialtiesVisibility = () => {
+    specialtyFieldset.classList.toggle('d-none', roleField.value !== 'staff');
+  };
+  roleField.addEventListener('change', updateSpecialtiesVisibility);
+  updateSpecialtiesVisibility();
+</script>
 <%- include('partials/footer') %>

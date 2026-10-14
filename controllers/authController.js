@@ -1,7 +1,9 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/db');
+const accounts = require('../models/accounts');
+const maintenance = require('../models/maintenance');
 
-const PUBLIC_ROLES = ['student', 'faculty'];
+const PUBLIC_ROLES = ['student', 'faculty', 'staff'];
 
 exports.getLogin = (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
@@ -29,6 +31,15 @@ exports.postLogin = async (req, res) => {
       values: { email }
     });
   }
+  if (user.verification_status !== 'Accepted') {
+    const message = user.verification_status === 'Rejected'
+      ? 'Your account verification was rejected. Contact the campus administrator for assistance.'
+      : 'Your account is awaiting administrator verification. Please try again later.';
+    return res.status(403).render('login', {
+      error: message,
+      values: { email }
+    });
+  }
 
   await new Promise((resolve, reject) => {
     req.session.regenerate((err) => err ? reject(err) : resolve());
@@ -37,59 +48,73 @@ exports.postLogin = async (req, res) => {
     id: user.id,
     full_name: user.full_name,
     email: user.email,
-    role: user.role
+    unique_id: user.unique_id,
+    profile_image: user.profile_image,
+    role: user.role,
+    verification_status: user.verification_status
   };
   return res.redirect('/dashboard');
 };
 
 exports.getRegister = (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
-  res.render('register', { error: null, values: {} });
+  res.render('register', { error: null, values: {}, categories: maintenance.CATEGORIES });
 };
 
 exports.postRegister = async (req, res) => {
   const fullName = typeof req.body.full_name === 'string' ? req.body.full_name.trim() : '';
   const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const uniqueId = typeof req.body.unique_id === 'string' ? req.body.unique_id.trim() : '';
   const password = typeof req.body.password === 'string' ? req.body.password : '';
   const role = typeof req.body.role === 'string' ? req.body.role : '';
-  const values = { full_name: fullName, email };
+  const postedCategories = Array.isArray(req.body.categories)
+    ? req.body.categories
+    : typeof req.body.categories === 'string' ? [req.body.categories] : [];
+  const categories = [...new Set(postedCategories)];
+  const values = { full_name: fullName, email, unique_id: uniqueId, role, categories };
+  const renderRegistrationError = (error, status = 400) => res.status(status).render('register', {
+    error,
+    values,
+    categories: maintenance.CATEGORIES
+  });
 
   if (fullName.length < 2 || fullName.length > 80 || !/^[\p{L}\p{M} .'-]+$/u.test(fullName)) {
-    return res.status(400).render('register', {
-      error: 'Enter a name between 2 and 80 characters using letters, spaces, apostrophes, periods, or hyphens.',
-      values
-    });
+    return renderRegistrationError('Enter a name between 2 and 80 characters using letters, spaces, apostrophes, periods, or hyphens.');
   }
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).render('register', { error: 'Enter a valid email address.', values });
+    return renderRegistrationError('Enter a valid email address.');
+  }
+  if (!/^\d{4,32}$/.test(uniqueId)) {
+    return renderRegistrationError('Enter your campus ID number using 4 to 32 digits.');
   }
   if (password.length < 8 || password.length > 200) {
-    return res.status(400).render('register', {
-      error: 'Your password must be at least 8 characters long.',
-      values
-    });
+    return renderRegistrationError('Your password must be at least 8 characters long.');
   }
   if (!PUBLIC_ROLES.includes(role)) {
-    return res.status(400).render('register', {
-      error: 'Choose a valid account type. Staff and administrator accounts are provisioned by an administrator.',
-      values
-    });
+    return renderRegistrationError('Choose a valid account type. Administrator accounts are provisioned securely.');
+  }
+  if (role === 'staff' && (!categories.length || categories.some((category) => !maintenance.CATEGORIES.includes(category)))) {
+    return renderRegistrationError('Choose at least one valid maintenance category for the technical team account.');
+  }
+  if (role !== 'staff' && categories.length) {
+    return renderRegistrationError('Only technical team accounts can select maintenance categories.');
   }
 
   await db.ready;
-  const existing = await db.get('SELECT id FROM users WHERE email = ?', [email]);
+  const existing = await db.get('SELECT id FROM users WHERE email = ? OR unique_id = ?', [email, uniqueId]);
   if (existing) {
-    return res.status(409).render('register', {
-      error: 'An account with that email already exists.',
-      values
-    });
+    return renderRegistrationError('An account with that email or campus ID number already exists.', 409);
   }
   const passwordHash = await bcrypt.hash(password, 12);
-  await db.run(
-    'INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, ?)',
-    [fullName, email, passwordHash, role]
+  const result = await db.run(
+    'INSERT INTO users (full_name, email, unique_id, password, role, verification_status) VALUES (?, ?, ?, ?, ?, ?)',
+    [fullName, email, uniqueId, passwordHash, role, 'Pending']
   );
-  req.session.notice = { type: 'success', message: 'Your account is ready. Sign in to continue.' };
+  if (role === 'staff') await accounts.setTechnicianCategories(result.lastID, categories);
+  req.session.notice = {
+    type: 'success',
+    message: 'Your account request was submitted. An administrator must verify it before you can sign in.'
+  };
   return res.redirect('/login');
 };
 

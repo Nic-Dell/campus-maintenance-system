@@ -1,10 +1,10 @@
 <%- include('partials/header') %>
 <main class="page-wrap narrow-page">
   <a href="/dashboard" class="back-link">← <span>Back to dashboard</span></a>
-  <section class="form-heading"><span class="eyebrow">WE’RE LISTENING</span><h1>What needs attention?</h1><p>Share a few details and the right campus team can get on it.</p></section>
+  <section class="form-heading"><span class="eyebrow">CAMPUS REQUEST</span><h1>Submit a campus request</h1><p>Provide the location and details needed for the technical team to review and accept the work.</p></section>
   <section class="form-card">
     <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
-    <form action="/requests" method="POST">
+    <form action="/requests" method="POST" enctype="multipart/form-data">
       <label class="field-label" for="title">Give it a short title</label>
       <input id="title" name="title" type="text" class="form-control" placeholder="e.g. Flickering lights in the study room" value="<%= values.title || '' %>" minlength="5" maxlength="100" required>
       <div class="form-row">
@@ -17,8 +17,10 @@
       </div>
       <label class="field-label" for="description">Tell us what’s going on</label>
       <textarea id="description" name="description" class="form-control" rows="5" placeholder="What did you notice? When did it start? Is there anything else that would help our team?" minlength="20" maxlength="2000" required><%= values.description || '' %></textarea>
-      <div class="form-note"><span>✦</span> Your report helps the whole campus. Similar reports are grouped in Campus Pulse.</div>
-      <div class="form-actions"><a href="/dashboard" class="btn btn-quiet">Cancel</a><button type="submit" class="btn btn-primary">Submit request <span aria-hidden="true">→</span></button></div>
+      <label class="field-label mt-3" for="report_image">Area photo <span class="optional-label">Optional · JPEG, PNG, or WebP · max 5 MB</span></label>
+      <input id="report_image" name="report_image" type="file" class="form-control image-upload" accept="image/jpeg,image/png,image/webp">
+      <div class="form-note"><span>Campus intelligence</span> Similar reports are grouped by location in Campus Pulse. Priority-based service targets are monitored in Campus SLA Watch.</div>
+      <div class="form-actions"><a href="/dashboard" class="btn btn-quiet">Cancel</a><button type="submit" class="btn btn-primary">Submit campus request <span aria-hidden="true">→</span></button></div>
     </form>
   </section>
 </main>

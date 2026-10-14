@@ -2,8 +2,8 @@
 <main class="page-wrap">
   <% if (notice) { %><div class="alert alert-<%= notice.type %>"><%= notice.message %></div><% } %>
   <section class="welcome-row">
-    <div><span class="eyebrow"><%= staffView ? 'CAMPUS OPERATIONS' : 'YOUR CAMPUS, WELL CARED FOR' %></span><h1><%= staffView ? 'Maintenance overview' : `Hello, ${user.full_name.split(' ')[0]}.` %></h1><p><%= staffView ? 'Every request is a chance to make campus better.' : 'A great place to learn starts with a space that works.' %></p></div>
-    <a href="/requests/new" class="btn btn-primary request-cta"><span class="plus-mark">＋</span> New request</a>
+    <div><span class="eyebrow"><%= staffView ? 'CAMPUS OPERATIONS' : 'REQUEST STATUS' %></span><h1><%= staffView ? technicianView ? 'Technical work queue' : 'Maintenance overview' : `Hello, ${user.full_name.split(' ')[0]}.` %></h1><p><%= technicianView ? 'Accept open campus requests that match your maintenance specialties, then record work updates.' : staffView ? 'Review maintenance requests, service targets, and work updates.' : 'Review your submitted campus requests and maintenance updates.' %></p></div>
+    <% if (requestCta) { %><a href="/requests/new" class="btn btn-primary request-cta"><span class="plus-mark">＋</span> Campus Request</a><% } %>
   </section>
 
   <section class="stats-grid" aria-label="Request summary">
@@ -14,7 +14,7 @@
   </section>
 
   <section class="pulse-panel">
-    <div class="pulse-copy"><span class="pulse-orbit">✳</span><div><span class="eyebrow">A LITTLE CAMPUS INTELLIGENCE</span><h2>Campus Pulse</h2><p>We connect repeated reports by building and category, so emerging maintenance hotspots get noticed sooner.</p></div></div>
+    <div class="pulse-copy"><span class="pulse-orbit">CP</span><div><span class="eyebrow">REPEATED ISSUE MONITORING</span><h2>Campus Pulse</h2><p>Unresolved reports are grouped by building and category to identify recurring maintenance hotspots.</p></div></div>
     <% if (hotspots.length) { %>
       <div class="pulse-hotspots">
         <% hotspots.forEach((spot) => { %>
@@ -30,8 +30,17 @@
     <% } %>
   </section>
 
+  <section class="sla-panel" aria-label="Priority service target summary">
+    <div class="sla-copy"><span class="sla-icon">SLA</span><div><span class="eyebrow">PRIORITY RESPONSE MONITORING</span><h2>Campus SLA Watch</h2><p>Open requests are tracked against response targets based on their priority.</p></div></div>
+    <div class="sla-metrics">
+      <div class="sla-metric <%= slaStats.overdue ? 'sla-metric-overdue' : '' %>"><strong><%= slaStats.overdue %></strong><span>Overdue</span></div>
+      <div class="sla-metric"><strong><%= slaStats.due_soon %></strong><span>Due within 24 hours</span></div>
+      <small>Urgent 24h · High 72h · Normal 7 days · Low 14 days</small>
+    </div>
+  </section>
+
   <section class="requests-section">
-    <div class="section-heading"><div><span class="eyebrow">THE DETAILS</span><h2><%= staffView ? 'Campus requests' : 'Your requests' %></h2></div><span class="result-count"><%= requests.length %><%= requests.length === 100 ? '+' : '' %> shown</span></div>
+    <div class="section-heading"><div><span class="eyebrow">THE DETAILS</span><h2><%= technicianView ? 'Requests for your specialties' : staffView ? 'Campus requests' : 'Your campus requests' %></h2></div><span class="result-count"><%= requests.length %><%= requests.length === 100 ? '+' : '' %> shown</span></div>
     <form action="/dashboard" method="GET" class="filter-bar">
       <div class="search-wrap"><span aria-hidden="true">⌕</span><input type="search" name="q" value="<%= search %>" placeholder="Search location, category or title…" aria-label="Search requests"></div>
       <select name="status" class="form-select filter-select" aria-label="Filter by status">
@@ -44,16 +53,16 @@
     <% if (requests.length) { %>
       <div class="request-list">
         <% requests.forEach((request) => { %>
-          <a class="request-row" href="/requests/<%= request.id %>">
+          <a class="request-row <%= request.priority === 'Urgent' ? 'request-row-urgent' : '' %>" href="/requests/<%= request.id %>">
             <div class="request-category-icon icon-<%= request.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') %>"><%= ({Electrical:'ϟ',Plumbing:'≈','Heating & Cooling':'☼',Cleaning:'✧',Furniture:'▱',Safety:'＋',Technology:'⌘',Other:'✳'})[request.category] %></div>
-            <div class="request-row-main"><div class="request-title-line"><strong><%= request.title %></strong><span class="priority priority-<%= request.priority.toLowerCase() %>"><span></span><%= request.priority %></span></div><div class="request-meta"><span><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></span><span class="meta-divider">·</span><span><%= request.category %></span><% if (staffView) { %><span class="meta-divider">·</span><span>By <%= request.reporter_name %></span><% } %></div></div>
-            <div class="request-row-side"><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span><small><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleDateString() %></small></div>
+            <div class="request-row-main"><div class="request-title-line"><strong><%= request.title %></strong><span class="priority priority-<%= request.priority.toLowerCase() %>"><span></span><%= request.priority %></span></div><div class="request-meta"><span><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></span><span class="meta-divider">·</span><span><%= request.category %></span><% if (staffView) { %><span class="meta-divider">·</span><span>By <%= request.reporter_name %></span><% } %><% if (request.status !== 'Resolved') { %><span class="sla-request-label <%= request.is_overdue ? 'is-overdue' : request.due_soon ? 'is-due-soon' : '' %>"><%= request.is_overdue ? 'Past target' : request.due_soon ? 'Due within 24h' : 'Target ' + new Date(`${request.due_at.replace(' ', 'T')}Z`).toLocaleDateString() %></span><% } %></div></div>
+            <div class="request-row-side"><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span><% if (request.priority === 'Urgent') { %><span class="priority-urgent-label">Urgent priority</span><% } %><% if (technicianView && Number(request.assigned_to) === Number(user.id)) { %><span class="assignment-label">Accepted by you</span><% } %><small><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleDateString() %></small></div>
             <span class="row-chevron" aria-hidden="true">›</span>
           </a>
         <% }) %>
       </div>
     <% } else { %>
-      <div class="empty-state"><span class="empty-illustration">⌂</span><h3><%= search || status ? 'No matching requests' : 'Nothing needs fixing. Yet.' %></h3><p><%= search || status ? 'Try a different search or clear your filters.' : staffView ? 'New campus reports will show up here.' : 'When something around campus needs attention, this is where your request will live.' %></p><% if (!search && !status && !staffView) { %><a class="btn btn-primary" href="/requests/new">Report a maintenance issue</a><% } %></div>
+      <div class="empty-state"><span class="empty-illustration">⌂</span><h3><%= search || status ? 'No matching requests' : technicianView ? 'No matching requests yet' : 'Nothing needs fixing. Yet.' %></h3><p><%= search || status ? 'Try a different search or clear your filters.' : technicianView ? 'Open requests in your specialties will appear here. Manage your specialties from your profile.' : staffView ? 'New campus requests will show up here.' : 'When something around campus needs attention, this is where your request will live.' %></p><% if (!search && !status && requestCta) { %><a class="btn btn-primary" href="/requests/new">Submit a campus request</a><% } else if (technicianView && !requests.length) { %><a class="btn btn-primary" href="/profile">Review your specialties</a><% } %></div>
     <% } %>
   </section>
 </main>

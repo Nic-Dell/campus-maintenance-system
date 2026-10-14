@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+<main class="page-wrap">
+  <section class="welcome-row">
+    <div><span class="eyebrow">CAMPUS OPERATIONS</span><h1>Maintenance analytics</h1><p>Review request demand, urgency, service completion, and user feedback.</p></div>
+    <div class="report-actions"><a class="btn btn-filter" href="/admin/analytics/export.csv">Export CSV</a><a class="btn btn-primary" href="/admin/analytics/export.pdf">Export PDF</a></div>
+  </section>
+  <section class="analytics-metrics" aria-label="Request summary">
+    <article><span>Total requests</span><strong><%= summary.total %></strong></article>
+    <article><span>Open</span><strong><%= summary.open %></strong></article>
+    <article><span>In progress</span><strong><%= summary.in_progress %></strong></article>
+    <article><span>Resolved</span><strong><%= summary.resolved %></strong></article>
+    <article><span>Average user rating</span><strong><%= Number(summary.average_rating).toFixed(1) %><small> / 5</small></strong><small><%= summary.feedback_count %> ratings</small></article>
+  </section>
+  <div class="analytics-grid">
+    <section class="analytics-card"><div class="section-heading"><div><span class="eyebrow">SERVICE LOAD</span><h2>Requests by priority</h2></div></div>
+      <% if (priorities.length) { %><table class="analytics-table"><thead><tr><th>Priority</th><th>Requests</th></tr></thead><tbody><% priorities.forEach((item) => { %><tr><td><span class="priority-dot priority-dot-<%= item.priority.toLowerCase() %>"></span><%= item.priority %></td><td><%= item.count %></td></tr><% }) %></tbody></table><% } else { %><p class="analytics-empty">No requests have been submitted yet.</p><% } %>
+    </section>
+    <section class="analytics-card"><div class="section-heading"><div><span class="eyebrow">RECURRING ISSUES</span><h2>By category</h2></div></div>
+      <% if (categories.length) { %><table class="analytics-table"><thead><tr><th>Category</th><th>Requests</th><th>Avg. rating</th></tr></thead><tbody><% categories.forEach((item) => { %><tr><td><%= item.category %></td><td><%= item.count %></td><td><%= Number(item.average_rating).toFixed(1) %></td></tr><% }) %></tbody></table><% } else { %><p class="analytics-empty">No category data is available yet.</p><% } %>
+    </section>
+    <section class="analytics-card analytics-card-wide"><div class="section-heading"><div><span class="eyebrow">CAMPUS LOCATIONS</span><h2>Most reported buildings</h2></div></div>
+      <% if (locations.length) { %><table class="analytics-table"><thead><tr><th>Building</th><th>Total requests</th><th>Unresolved</th></tr></thead><tbody><% locations.forEach((item) => { %><tr><td><%= item.building %></td><td><%= item.count %></td><td><%= item.unresolved %></td></tr><% }) %></tbody></table><% } else { %><p class="analytics-empty">No campus location data is available yet.</p><% } %>
+    </section>
+  </div>
+  <p class="analytics-footnote">Exports include request status, priority, assignment, service target, and any submitted feedback. Keep downloaded reports within authorized campus administration.</p>
+</main>
+<%- include('partials/footer') %>

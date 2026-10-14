@@ -5,17 +5,48 @@
   <section class="detail-card">
     <div class="detail-topline"><span class="eyebrow">REQUEST #<%= String(request.id).padStart(4, '0') %></span><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span></div>
     <h1><%= request.title %></h1>
-    <div class="detail-tags"><span><%= request.category %></span><span><%= request.priority %> priority</span></div>
+    <div class="detail-tags"><span><%= request.category %></span><span class="priority-detail priority-<%= request.priority.toLowerCase() %>"><%= request.priority %> priority</span><% if (request.status !== 'Resolved' && request.due_at) { %><span class="<%= new Date(`${request.due_at.replace(' ', 'T')}Z`).getTime() <= Date.now() ? 'sla-detail-overdue' : '' %>">Target <%= new Date(`${request.due_at.replace(' ', 'T')}Z`).toLocaleString() %></span><% } %></div>
     <p class="detail-description"><%= request.description %></p>
-    <div class="detail-facts"><div><span>LOCATION</span><strong><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></strong></div><div><span>REPORTED BY</span><strong><%= request.reporter_name %></strong></div><div><span>SUBMITTED</span><strong><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleString() %></strong></div></div>
-    <% if (staffView) { %>
-      <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update">
-        <div><span class="eyebrow">STAFF WORKSPACE</span><h2>Update this request</h2><p>Every status change is added to the request timeline.</p></div>
+    <div class="detail-facts"><div><span>LOCATION</span><strong><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></strong></div><div><span>REPORTED BY</span><strong><%= request.reporter_name %></strong></div><div><span>SUBMITTED</span><strong><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleString() %></strong></div><% if (request.assignee_name) { %><div><span>SCHEDULED TECHNICIAN</span><strong><%= request.assignee_name %></strong></div><% } %></div>
+    <div class="scheduling-notice"><strong>Priority-based technician scheduling</strong><p>Campus Care assigns requests to an administrator-verified technician qualified for this category, choosing the technician with the fewest active requests. Urgent and high-priority requests are shown first in the technician queue. If no qualified technician is available, the request remains unassigned for an eligible technician to claim.</p></div>
+    <% if (request.report_image || request.before_image || request.after_image) { %>
+      <section class="evidence-section" aria-label="Request photographs">
+        <h2>Photographic evidence</h2>
+        <div class="evidence-grid">
+          <% if (request.report_image) { %><figure><img src="/requests/<%= request.id %>/images/report" alt="Area photo submitted with the issue report"><figcaption>Reported area</figcaption></figure><% } %>
+          <% if (request.before_image) { %><figure><img src="/requests/<%= request.id %>/images/before" alt="Area photo before maintenance work"><figcaption>Before maintenance</figcaption></figure><% } %>
+          <% if (request.after_image) { %><figure><img src="/requests/<%= request.id %>/images/after" alt="Area photo after maintenance work"><figcaption>After maintenance</figcaption></figure><% } %>
+        </div>
+      </section>
+    <% } %>
+    <% if (canClaim) { %><form action="/requests/<%= request.id %>/accept" method="POST" class="accept-request-panel"><div><span class="eyebrow">MATCHES YOUR SPECIALTIES</span><strong>Accept this campus request</strong><p>Once accepted, it will be assigned to you and you can update its work status.</p></div><button type="submit" class="btn btn-primary">Accept request</button></form><% } %>
+    <% if (staffView && (user.role === 'admin' || Number(request.assigned_to) === Number(user.id))) { %>
+      <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update" enctype="multipart/form-data" id="staff-update-form">
+        <div><span class="eyebrow"><%= user.role === 'admin' ? 'CAMPUS OPERATIONS' : 'TECHNICAL TEAM WORKSPACE' %></span><h2>Update this request</h2><p>Attach a before-work photo when work begins and an after-work photo before resolving the request.</p></div>
         <label class="field-label" for="status">Status</label>
-        <select id="status" name="status" class="form-select"><% statuses.forEach((status) => { %><option value="<%= status %>" <%= request.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select>
+        <select id="status" name="status" class="form-select" data-has-before="<%= request.before_image ? 'true' : 'false' %>" data-has-after="<%= request.after_image ? 'true' : 'false' %>"><% statuses.forEach((status) => { %><option value="<%= status %>" <%= request.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select>
         <label class="field-label mt-3" for="note">Update note <span class="optional-label">Optional</span></label>
         <input id="note" name="note" type="text" class="form-control" maxlength="240" placeholder="Add a short note for the reporter">
+        <label class="field-label mt-3" for="before_image">Before-work photo <span class="optional-label">Required when work begins · max 5 MB</span></label>
+        <input id="before_image" name="before_image" type="file" class="form-control image-upload" accept="image/jpeg,image/png,image/webp">
+        <label class="field-label mt-3" for="after_image">After-work photo <span class="optional-label">Required before resolution · max 5 MB</span></label>
+        <input id="after_image" name="after_image" type="file" class="form-control image-upload" accept="image/jpeg,image/png,image/webp">
         <button type="submit" class="btn btn-primary mt-3">Save update</button>
+      </form>
+    <% } %>
+    <% if (canGiveFeedback) { %>
+      <form action="/requests/<%= request.id %>/feedback" method="POST" class="feedback-panel">
+        <span class="eyebrow">SERVICE FEEDBACK</span>
+        <h2>How was the maintenance service?</h2>
+        <p>Your rating helps campus administration monitor service quality.</p>
+        <label class="field-label" for="rating">Rating</label>
+        <select id="rating" name="rating" class="form-select" required>
+          <option value="">Choose a rating</option>
+          <% [5, 4, 3, 2, 1].forEach((rating) => { %><option value="<%= rating %>" <%= Number(request.feedback_rating) === rating ? 'selected' : '' %>><%= rating %> - <%= ({ 5: 'Excellent', 4: 'Good', 3: 'Fair', 2: 'Poor', 1: 'Very poor' })[rating] %></option><% }) %>
+        </select>
+        <label class="field-label mt-3" for="feedback-comment">Comment <span class="optional-label">Optional</span></label>
+        <textarea id="feedback-comment" name="comment" class="form-control" maxlength="1000" rows="3" placeholder="Share a short comment"><%= request.feedback_comment || '' %></textarea>
+        <button type="submit" class="btn btn-primary mt-3"><%= request.feedback_rating ? 'Update feedback' : 'Submit feedback' %></button>
       </form>
     <% } %>
     <div class="timeline-heading"><div><span class="eyebrow">KEEPING YOU IN THE LOOP</span><h2>Request timeline</h2></div></div>
@@ -25,4 +56,17 @@
     <% if (!staffView && request.status === 'Open') { %><form action="/requests/<%= request.id %>/delete" method="POST" class="withdraw-form" onsubmit="return confirm('Withdraw this open request?')"><button type="submit" class="btn btn-quiet danger-quiet">Withdraw this request</button></form><% } %>
   </section>
 </main>
+<% if (staffView) { %>
+<script>
+  const statusField = document.getElementById('status');
+  const beforePhoto = document.getElementById('before_image');
+  const afterPhoto = document.getElementById('after_image');
+  const updatePhotoRequirements = () => {
+    beforePhoto.required = ['In Progress', 'Resolved'].includes(statusField.value) && statusField.dataset.hasBefore !== 'true';
+    afterPhoto.required = statusField.value === 'Resolved' && statusField.dataset.hasAfter !== 'true';
+  };
+  statusField.addEventListener('change', updatePhotoRequirements);
+  updatePhotoRequirements();
+</script>
+<% } %>
 <%- include('partials/footer') %>

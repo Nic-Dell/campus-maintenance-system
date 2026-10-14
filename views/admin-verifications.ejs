@@ -1,0 +1,36 @@
+<%- include('partials/header') %>
+<main class="page-wrap">
+  <% if (notice) { %><div class="alert alert-<%= notice.type %>"><%= notice.message %></div><% } %>
+  <section class="welcome-row">
+    <div><span class="eyebrow">ADMINISTRATION</span><h1>Account verification</h1><p>Check each campus ID against an official campus record before accepting an account.</p></div>
+    <a href="/dashboard" class="btn btn-filter">Back to overview</a>
+  </section>
+
+  <section class="requests-section">
+    <div class="section-heading"><div><span class="eyebrow">MANUAL REVIEW</span><h2>Student, faculty, and technical team accounts</h2></div><span class="result-count"><%= accounts.length %> accounts</span></div>
+    <p class="verification-guidance">Compare the campus ID shown on each account with your official campus records. Account IDs are displayed for review and cannot be edited here.</p>
+    <% if (accounts.length) { %>
+      <div class="request-list">
+        <% accounts.forEach((account) => { %>
+          <article class="verification-row">
+            <div class="verification-account">
+              <strong><%= account.full_name %></strong>
+              <span><%= account.email %></span>
+              <small><%= account.role === 'staff' ? 'Technical team' : account.role === 'faculty' ? 'Faculty' : 'Student' %></small>
+              <span class="verification-campus-id"><span>Campus ID</span><strong><%= account.unique_id || 'Not on file — legacy account' %></strong></span>
+            </div>
+            <span class="verification-status verification-<%= account.verification_status.toLowerCase() %>"><%= account.verification_status %></span>
+            <form action="/admin/verifications/<%= account.id %>" method="POST" class="verification-actions">
+              <button class="btn btn-filter" type="submit" name="status" value="Verifying">Mark verifying</button>
+              <button class="btn btn-primary" type="submit" name="status" value="Accepted" <%= account.unique_id ? '' : 'disabled title="Cannot accept: campus ID is not on file"' %>>Accept</button>
+              <button class="btn btn-reject" type="submit" name="status" value="Rejected">Reject</button>
+            </form>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state"><span class="empty-illustration">✓</span><h3>No accounts to review</h3><p>New student, faculty, and technical team registrations will appear here.</p></div>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/footer') %>

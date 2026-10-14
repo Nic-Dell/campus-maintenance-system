@@ -34,12 +34,16 @@ app.use(session({
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.notice = req.session.notice || null;
-  res.locals.currentPage = req.path === '/requests/new' ? 'new-request' : '';
+  res.locals.currentPage = req.path === '/requests/new'
+    ? 'new-request'
+    : req.path === '/profile' ? 'profile' : '';
   delete req.session.notice;
   next();
 });
 
 app.use('/', require('./routes/auth'));
+app.use('/', require('./routes/profile'));
+app.use('/', require('./routes/admin'));
 app.use('/', require('./routes/maintenance'));
 app.get('/', (req, res) => res.redirect(req.session.user ? '/dashboard' : '/login'));
 

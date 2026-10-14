@@ -4,19 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f7f3">
-  <title><%= typeof title === 'string' ? `${title} · Campus Care` : 'Campus Care · Maintenance, made thoughtful' %></title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title><%= typeof title === 'string' ? `${title} | Campus Care` : 'Campus Care | Campus Maintenance System' %></title>
   <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
 <header class="site-header">
   <div class="nav-shell">
-    <a href="<%= user ? '/dashboard' : '/login' %>" class="brand" aria-label="Campus Care home"><span class="brand-mark">c<span>✳</span></span><span class="brand-name">campus<span>care</span></span></a>
+    <a href="<%= user ? '/dashboard' : '/login' %>" class="brand" aria-label="Campus Care home"><span class="brand-mark">CC</span><span class="brand-name">campus<span>care</span></span></a>
     <% if (user) { %>
-      <nav class="main-nav"><a href="/dashboard" class="<%= typeof currentPage !== 'undefined' && currentPage === 'new-request' ? '' : 'active' %>">Overview</a><a href="/requests/new" class="<%= typeof currentPage !== 'undefined' && currentPage === 'new-request' ? 'active' : '' %>">New request</a></nav>
-      <div class="nav-user"><div class="user-avatar"><%= user.full_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() %></div><div class="user-name"><strong><%= user.full_name %></strong><small><%= user.role === 'admin' ? 'Administrator' : user.role === 'staff' ? 'Maintenance team' : user.role === 'faculty' ? 'Faculty' : 'Student' %></small></div><form action="/logout" method="POST"><button class="logout-button" type="submit" aria-label="Sign out" title="Sign out">↗</button></form></div>
+      <nav class="main-nav"><a href="/dashboard" class="<%= !['new-request', 'profile', 'admin-analytics'].includes(currentPage) ? 'active' : '' %>">Overview</a><% if (['student', 'faculty'].includes(user.role)) { %><a href="/requests/new" class="<%= currentPage === 'new-request' ? 'active' : '' %>">Campus Request</a><% } %><a href="/profile" class="<%= currentPage === 'profile' ? 'active' : '' %>">Profile</a><% if (user.role === 'admin') { %><a href="/admin/verifications">Admin verification</a><a href="/admin/analytics" class="<%= currentPage === 'admin-analytics' ? 'active' : '' %>">Analytics</a><% } %></nav>
+      <div class="nav-user"><a class="user-avatar-link" href="/profile" aria-label="Open profile"><% if (user.profile_image) { %><img class="user-avatar" src="/profile/image" alt=""><% } else { %><span class="user-avatar"><%= user.full_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() %></span><% } %></a><div class="user-name"><strong><%= user.full_name %></strong><small><%= user.role === 'admin' ? 'Administrator' : user.role === 'staff' ? 'Technical team' : user.role === 'faculty' ? 'Faculty' : 'Student' %></small></div><form action="/logout" method="POST"><button class="logout-button" type="submit" aria-label="Sign out" title="Sign out">↗</button></form></div>
     <% } else { %><a href="/login" class="header-signin">Sign in <span aria-hidden="true">→</span></a><% } %>
   </div>
 </header>
