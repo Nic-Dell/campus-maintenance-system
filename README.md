@@ -1,12 +1,12 @@
-# Campus Care — Campus Maintenance System
+# UniFix — Campus Maintenance System
 
-Campus Care gives students and faculty one secure place to submit campus requests and follow their progress. Technicians choose their maintenance specialties, receive eligible assignments, document work, and leave a visible progress history.
+UniFix gives students and faculty one secure place to submit campus requests and follow their progress. Technicians choose their maintenance specialties, receive eligible assignments, document work, and leave a visible progress history.
 
 The documented users, stakeholders, requirements, and use cases are in [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Project description
 
-Campus Care is a browser-based campus maintenance system. It helps campus community members submit and follow facilities requests, while verified technical staff accept requests in their specialties and document the work. The application uses server-side validation, role-based access, private image storage, and persistent MySQL/MariaDB records.
+UniFix is a browser-based campus maintenance system. It helps campus community members submit and follow facilities requests, while verified technical staff accept requests in their specialties and document the work. The application uses server-side validation, role-based access, private image storage, and persistent MySQL/MariaDB records.
 
 ## Assigned system
 
@@ -106,7 +106,7 @@ npm.cmd run db:import-sqlite
 
 The importer creates the MySQL database and copies account hashes, verification states, technician specialties, profile and request image references, requests, timelines, and service deadlines. It refuses to import if the target tables already contain records, and it leaves the SQLite source and image files untouched. By default it reads `data/campus-maintenance.sqlite`; set `SQLITE_IMPORT_PATH` in `.env` if your old SQLite file is elsewhere. Once imported, the MySQL database becomes the live application database.
 
-### View Campus Care data in phpMyAdmin
+### View UniFix data in phpMyAdmin
 
 1. Open **XAMPP Control Panel** and start **MySQL** and **Apache**.
 2. Open [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/).
@@ -117,7 +117,7 @@ The app connects directly to MySQL/MariaDB; it does not connect through phpMyAdm
 
 ## How to run
 
-From PowerShell in the project directory, start Campus Care:
+From PowerShell in the project directory, start UniFix:
 
 ```powershell
 npm.cmd start
@@ -316,7 +316,7 @@ npm.cmd install
 Copy-Item .env.example .env
 ```
 
-Each person should edit their own local `.env`, set a private random `SESSION_SECRET`, and never commit that file. Start XAMPP MySQL, then run `npm.cmd start`; Campus Care creates its MySQL database automatically when it starts.
+Each person should edit their own local `.env`, set a private random `SESSION_SECRET`, and never commit that file. Start XAMPP MySQL, then run `npm.cmd start`; UniFix creates its MySQL database automatically when it starts.
 
 ### 7. Make changes on a feature branch
 

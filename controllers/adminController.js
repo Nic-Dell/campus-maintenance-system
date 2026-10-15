@@ -99,7 +99,7 @@ exports.exportCsv = async (req, res) => {
   ].join('\r\n');
   res.set({
     'Content-Type': 'text/csv; charset=utf-8',
-    'Content-Disposition': 'attachment; filename="campus-care-requests.csv"',
+    'Content-Disposition': 'attachment; filename="unifix-requests.csv"',
     'Cache-Control': 'no-store'
   });
   return res.send(`\uFEFF${csv}`);
@@ -114,11 +114,11 @@ exports.exportPdf = async (req, res, next) => {
   document.on('error', next);
   res.set({
     'Content-Type': 'application/pdf',
-    'Content-Disposition': 'attachment; filename="campus-care-analytics.pdf"',
+    'Content-Disposition': 'attachment; filename="unifix-analytics.pdf"',
     'Cache-Control': 'no-store'
   });
   document.pipe(res);
-  document.fontSize(20).fillColor('#173b5e').text('Campus Care - Analytics Report');
+  document.fontSize(20).fillColor('#173b5e').text('UniFix - Analytics Report');
   document.moveDown(0.4);
   document.fontSize(10).fillColor('#34465a')
     .text(`Generated ${new Date().toLocaleString()}`)

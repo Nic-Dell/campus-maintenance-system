@@ -1,8 +1,8 @@
-# Campus Care — Requirements
+# UniFix — Requirements
 
 ## Purpose and scope
 
-Campus Care is a campus maintenance system for reporting, tracking, and triaging repair and facilities issues. The first release supports one campus, persistent MySQL/MariaDB storage, and browser-based use on desktop and mobile. It is not an emergency dispatch service.
+UniFix is a campus maintenance system for reporting, tracking, and triaging repair and facilities issues. The first release supports one campus, persistent MySQL/MariaDB storage, and browser-based use on desktop and mobile. It is not an emergency dispatch service.
 
 ## Users
 
@@ -117,7 +117,7 @@ Campus Care is a campus maintenance system for reporting, tracking, and triaging
 
 ### UC-09 — Automatically schedule a technician
 
-- **Actor:** Campus Care system; technical team members receive the assignments.
+- **Actor:** UniFix system; technical team members receive the assignments.
 - **Precondition:** A student or faculty member submits a valid request.
 - **Steps:** Find administrator-accepted technicians with a matching specialty; assign the request to the matching technician with the fewest active requests; order urgent and high-priority work first in the technician queue.
 - **Expected result:** The detail page identifies the scheduled technician. If there is no verified technician for that category, the request remains unassigned and appears in matching technicians' claimable queue.
