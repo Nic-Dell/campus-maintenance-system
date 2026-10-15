@@ -24,9 +24,9 @@
       <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update" enctype="multipart/form-data" id="staff-update-form">
         <div><span class="eyebrow"><%= user.role === 'admin' ? 'CAMPUS OPERATIONS' : 'TECHNICAL TEAM WORKSPACE' %></span><h2>Update this request</h2><p>Attach a before-work photo when work begins and an after-work photo before resolving the request.</p></div>
         <label class="field-label" for="status">Status</label>
-        <select id="status" name="status" class="form-select" data-current-status="<%= request.status %>" data-has-before="<%= request.before_image ? 'true' : 'false' %>" data-has-after="<%= request.after_image ? 'true' : 'false' %>"><% statuses.forEach((status) => { %><option value="<%= status %>" <%= request.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select>
-        <label class="field-label mt-3" for="note">Update note <span class="optional-label" id="note-guidance">Required for status changes · optional for evidence-only updates</span></label>
-        <input id="note" name="note" type="text" class="form-control" maxlength="240" placeholder="Explain the status change for the reporter" aria-describedby="note-guidance">
+        <select id="status" name="status" class="form-select" data-has-before="<%= request.before_image ? 'true' : 'false' %>" data-has-after="<%= request.after_image ? 'true' : 'false' %>"><% statuses.forEach((status) => { %><option value="<%= status %>" <%= request.status === status ? 'selected' : '' %>><%= status %></option><% }) %></select>
+        <label class="field-label mt-3" for="note">Update note <span class="optional-label">Optional</span></label>
+        <input id="note" name="note" type="text" class="form-control" maxlength="240" placeholder="Add a short note for the reporter">
         <label class="field-label mt-3" for="before_image">Before-work photo <span class="optional-label">Required when work begins · max 5 MB</span></label>
         <input id="before_image" name="before_image" type="file" class="form-control image-upload" accept="image/jpeg,image/png,image/webp">
         <label class="field-label mt-3" for="after_image">After-work photo <span class="optional-label">Required before resolution · max 5 MB</span></label>
@@ -59,19 +59,13 @@
 <% if (staffView) { %>
 <script>
   const statusField = document.getElementById('status');
-  const noteField = document.getElementById('note');
   const beforePhoto = document.getElementById('before_image');
   const afterPhoto = document.getElementById('after_image');
-  const updateNoteRequirement = () => {
-    noteField.required = statusField.value !== statusField.dataset.currentStatus;
-  };
   const updatePhotoRequirements = () => {
     beforePhoto.required = ['In Progress', 'Resolved'].includes(statusField.value) && statusField.dataset.hasBefore !== 'true';
     afterPhoto.required = statusField.value === 'Resolved' && statusField.dataset.hasAfter !== 'true';
   };
-  statusField.addEventListener('change', updateNoteRequirement);
   statusField.addEventListener('change', updatePhotoRequirements);
-  updateNoteRequirement();
   updatePhotoRequirements();
 </script>
 <% } %>
