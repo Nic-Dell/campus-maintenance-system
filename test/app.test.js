@@ -196,6 +196,9 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   assert.match(await studentProfile.text(), /Campus ID/);
   const campusRequestForm = await visitor('/requests/new');
   const campusRequestHtml = await campusRequestForm.text();
+  assert.match(campusRequestHtml, /id="description-count"[^>]*aria-live="polite"/);
+  assert.match(campusRequestHtml, /id="report-image-preview"/);
+  assert.match(campusRequestHtml, /id="remove-report-image"/);
   const campusLocations = [
     'Office of the President',
     'Administration Building',

@@ -146,6 +146,11 @@ textarea.form-control { resize:vertical; line-height:1.55; }
 .optional-label { margin-left:5px; color:#a0a9a4; font-size:9px; font-weight:500; }
 .form-note { display:flex; align-items:center; gap:8px; margin-top:15px; border-radius:7px; background:#f1f6f1; padding:10px 12px; color:#687a6e; font-size:10px; }
 .form-note span { color:var(--green); }
+.description-counter { display:block; margin-top:6px; color:var(--muted); font-size:10px; text-align:right; }
+.report-image-preview { display:flex; align-items:center; gap:12px; margin-top:10px; padding:9px; border:1px solid var(--line); border-radius:7px; background:#fafbf9; }
+.report-image-preview[hidden] { display:none; }
+.report-image-preview img { width:72px; height:60px; object-fit:cover; border-radius:4px; }
+.report-image-preview>div { display:flex; align-items:center; flex-wrap:wrap; gap:9px; color:var(--muted); font-size:10px; }
 .form-actions { display:flex; justify-content:flex-end; gap:9px; margin-top:20px; padding-top:17px; border-top:1px solid #eef0ec; }
 .btn-quiet { border:1px solid #e1e6e1; background:white; color:#69766f; }
 .btn-quiet:hover { background:#f6f8f5; }
