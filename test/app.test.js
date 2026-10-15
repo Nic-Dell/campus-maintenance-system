@@ -327,6 +327,14 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   assert.match(staffDashboardHtml, /College of Engineering and Architecture - Acad I/);
   assert.match(staffDashboardHtml, /2 open reports/);
 
+  const missingStatusNote = await staff(`/requests/${firstId}/status`, form({
+    status: 'In Progress'
+  }));
+  assert.equal(missingStatusNote.status, 302);
+  assert.equal((await db.get('SELECT status FROM maintenance_requests WHERE id = ?', [firstId])).status, 'Open');
+  const missingStatusNoteDetail = await staff(`/requests/${firstId}`);
+  assert.match(await missingStatusNoteDetail.text(), /Add a short update note to explain this status change/);
+
   const missingBeforePhoto = await staff(`/requests/${firstId}/status`, form({
     status: 'In Progress',
     note: 'Facilities team assigned to investigate.'
@@ -339,9 +347,11 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   }, { before_image: samplePng }));
   assert.equal(update.status, 302);
 
-  const detail = await visitor(`/requests/${firstId}`);
+  const detail = await staff(`/requests/${firstId}`);
   const detailHtml = await detail.text();
   assert.equal(detail.status, 200);
+  assert.match(detailHtml, /Required for status changes/);
+  assert.match(detailHtml, /data-current-status="In Progress"/);
   assert.match(detailHtml, /In Progress/);
   assert.match(detailHtml, /Facilities team assigned to investigate/);
   assert.match(detailHtml, /Before maintenance/);
