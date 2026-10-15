@@ -2,13 +2,13 @@
 <main class="page-wrap">
   <% if (notice) { %><div class="alert alert-<%= notice.type %>"><%= notice.message %></div><% } %>
   <section class="welcome-row">
-    <div><span class="eyebrow">ADMINISTRATION</span><h1>Account verification</h1><p>Check each campus ID against an official campus record before accepting an account.</p></div>
+    <div><span class="eyebrow">ADMINISTRATION</span><h1>Technician verification</h1><p>Review technical team accounts before they can access maintenance requests.</p></div>
     <a href="/dashboard" class="btn btn-filter">Back to overview</a>
   </section>
 
   <section class="requests-section">
-    <div class="section-heading"><div><span class="eyebrow">MANUAL REVIEW</span><h2>Student, faculty, and technical team accounts</h2></div><span class="result-count"><%= accounts.length %> accounts</span></div>
-    <p class="verification-guidance">Compare the campus ID shown on each account with your official campus records. Account IDs are displayed for review and cannot be edited here.</p>
+    <div class="section-heading"><div><span class="eyebrow">MANUAL REVIEW</span><h2>Technical team accounts</h2></div><span class="result-count"><%= accounts.length %> accounts</span></div>
+    <p class="verification-guidance">Students and faculty can access the system immediately after registration. Compare technician campus IDs with official records before granting maintenance access.</p>
     <% if (accounts.length) { %>
       <div class="request-list">
         <% accounts.forEach((account) => { %>
@@ -16,7 +16,7 @@
             <div class="verification-account">
               <strong><%= account.full_name %></strong>
               <span><%= account.email %></span>
-              <small><%= account.role === 'staff' ? 'Technical team' : account.role === 'faculty' ? 'Faculty' : 'Student' %></small>
+              <small>Technical team</small>
               <span class="verification-campus-id"><span>Campus ID</span><strong><%= account.unique_id || 'Not on file — legacy account' %></strong></span>
             </div>
             <span class="verification-status verification-<%= account.verification_status.toLowerCase() %>"><%= account.verification_status %></span>
@@ -29,7 +29,7 @@
         <% }) %>
       </div>
     <% } else { %>
-      <div class="empty-state"><span class="empty-illustration">✓</span><h3>No accounts to review</h3><p>New student, faculty, and technical team registrations will appear here.</p></div>
+      <div class="empty-state"><span class="empty-illustration">✓</span><h3>No technicians to review</h3><p>New technical team registrations will appear here.</p></div>
     <% } %>
   </section>
 </main>

@@ -22,7 +22,7 @@ Campus Maintenance System, built for the Node.js and Express Round 1 campus-syst
 ## Features
 
 - Formal, responsive sign-in and student/faculty/technical-team registration with a unique campus ID.
-- Admin-only manual campus-ID verification with Pending, Verifying, Accepted, and Rejected account states.
+- Students and faculty can sign in immediately after registration; administrator-only campus-ID verification is required for technical team accounts.
 - Secure password hashing, server-side sessions, private request ownership, admin verification, and specialty-scoped technician access.
 - Validated campus requests with categories, CSPC locations, room/area, priority, and description.
 - Automatic category-matched technician assignment balances active workload among administrator-verified technicians. Urgent and high-priority requests appear first in technician queues; when no eligible technician is available, a qualified technician can claim the unassigned request.
@@ -94,7 +94,7 @@ The request form offers the following campus locations:
 
 ## Database setup
 
-The application creates the `campus_maintenance` MySQL database, tables, and indexes on first start. Private request images are stored outside the public web directory in `data/campus-maintenance-uploads/` by default and are excluded from Git. On upgrade, existing non-admin accounts become Pending. Older accounts without a campus ID cannot be accepted; ask those people to register again with their campus ID. An existing administrator without a campus ID must be matched to `ADMIN_EMAIL` and assigned `ADMIN_UNIQUE_ID` in `.env`; its existing password does not need to be changed. Keep `.env`, database backups, and uploaded photos private.
+The application creates the `campus_maintenance` MySQL database, tables, and indexes on first start. Private request images are stored outside the public web directory in `data/campus-maintenance-uploads/` by default and are excluded from Git. On upgrade, student and faculty accounts are set to Accepted; existing technician verification statuses are retained, and new technician accounts begin Pending. Older technician accounts without a campus ID cannot be accepted; ask those people to register again with their campus ID. An existing administrator without a campus ID must be matched to `ADMIN_EMAIL` and assigned `ADMIN_UNIQUE_ID` in `.env`; its existing password does not need to be changed. Keep `.env`, database backups, and uploaded photos private.
 
 ### Import the existing SQLite database once
 
@@ -127,7 +127,7 @@ Open [http://localhost:3000](http://localhost:3000). Run the automated workflow 
 
 ## User accounts
 
-- **Students and faculty:** create an account at `/register` with a unique 4-32 digit campus ID. The account starts Pending; an administrator must verify it before sign-in.
+- **Students and faculty:** create an account at `/register` with a unique 4-32 digit campus ID. They can sign in immediately without administrator approval.
 - **Technical team:** register as **Technical team** and select at least one maintenance specialty. After admin verification, the technician sees matching unassigned requests, accepts one to take responsibility, and then updates its status. Their specialty list and profile photo can be changed on **Profile**.
 - **Administrators:** no public admin registration is available. The first administrator is bootstrapped from the private `ADMIN_EMAIL`, `ADMIN_UNIQUE_ID`, and `ADMIN_PASSWORD` settings in `.env`. The bootstrap password must be at least 12 characters. Existing administrator passwords are not reset by changing `.env`.
 
@@ -137,7 +137,7 @@ Open `http://localhost:3000/login` and use the administrator email and password 
 
 If an administrator account already exists, changing the bootstrap values does not change its stored password. Sign in with the existing account password; there is no password-reset screen yet. Keep `.env` private and out of Git.
 
-Students and faculty submit Campus Requests with their unique campus ID number. All roles can view and update their profile name, email, and private profile photo. Pending or rejected accounts cannot sign in. Request and profile photos are stored privately outside the public web directory. Technician before-work evidence is required to begin work; after-work evidence is required before marking a request resolved. Urgent requests are highlighted in red.
+Students and faculty submit Campus Requests with their unique campus ID number. All roles can view and update their profile name, email, and private profile photo. Technical team accounts in Pending or Rejected status cannot sign in. Request and profile photos are stored privately outside the public web directory. Technician before-work evidence is required to begin work; after-work evidence is required before marking a request resolved. Urgent requests are highlighted in red.
 
 Campus SLA Watch uses initial targets of Urgent: 24 hours, High: 72 hours, Normal: 7 days, and Low: 14 days. Confirm or adjust these targets with campus facilities policy before operational use.
 
@@ -150,7 +150,7 @@ Campus SLA Watch uses initial targets of Urgent: 24 hours, High: 72 hours, Norma
 
 ## Access control and data handling
 
-- Public registration accepts student, faculty, and technical-team roles and requires a unique 4-32 digit campus ID. Technical-team accounts must select one or more specialties. All new accounts begin Pending; only administrators can mark accounts Verifying, Accepted, or Rejected. Only Accepted accounts can sign in, and administrators cannot change another administrator's verification status.
+- Public registration accepts student, faculty, and technical-team roles and requires a unique 4-32 digit campus ID. Students and faculty are accepted immediately. Technical-team accounts must select one or more specialties and remain Pending until an administrator marks them Verifying, Accepted, or Rejected. Only Accepted accounts can sign in; the administrator verification queue contains technicians only.
 - Request pages require a session. Students/faculty can access only their own requests; technicians can access only requests in their specialties or assigned to them; administrators can access the campus queue.
 - All database writes use bound SQL parameters; submitted values are checked server-side, and EJS escapes interpolated text by default.
 - Sessions use an HTTP-only, same-site cookie, regenerate after sign-in, and expire after eight hours. Set `NODE_ENV=production` when deploying behind HTTPS.

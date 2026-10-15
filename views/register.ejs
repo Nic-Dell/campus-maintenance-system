@@ -3,8 +3,8 @@
   <section class="auth-story">
     <span class="eyebrow light-eyebrow">CAMPUS FACILITIES SERVICE</span>
     <h1>A well-maintained campus<br><em>supports learning.</em></h1>
-    <p>Register with your campus ID to submit or manage campus requests. An administrator verifies each account before access is enabled.</p>
-    <div class="story-proof"><span class="proof-mark">CC</span><span>Account access is verified by campus administration.</span></div>
+    <p>Register with your campus ID to submit or manage campus requests. Technician accounts are verified by an administrator before access is enabled.</p>
+    <div class="story-proof"><span class="proof-mark">CC</span><span>Students and faculty can sign in as soon as they register.</span></div>
   </section>
   <section class="auth-card">
     <div class="auth-card-heading"><span class="eyebrow">GET STARTED</span><h2>Create your account</h2><p>Join your campus maintenance community.</p></div>
@@ -17,7 +17,10 @@
       <label class="field-label mt-3" for="unique_id">Campus ID number</label>
       <input id="unique_id" name="unique_id" type="text" class="form-control" placeholder="Your unique campus ID" value="<%= values.unique_id || '' %>" inputmode="numeric" pattern="[0-9]{4,32}" minlength="4" maxlength="32" autocomplete="off" required>
       <label class="field-label mt-3" for="password">Password</label>
-      <input id="password" name="password" type="password" class="form-control" placeholder="At least 8 characters" minlength="8" maxlength="200" autocomplete="new-password" required>
+      <div class="password-field">
+        <input id="password" name="password" type="password" class="form-control" placeholder="At least 8 characters" minlength="8" maxlength="200" autocomplete="new-password" required>
+        <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false" aria-controls="password">Show</button>
+      </div>
       <label class="field-label mt-3" for="role">I’m joining as a</label>
       <select id="role" name="role" class="form-select" required>
         <option value="student" <%= values.role === 'student' ? 'selected' : '' %>>Student</option>
@@ -29,19 +32,37 @@
         <p class="profile-help">Select every maintenance category you are qualified to receive.</p>
         <div class="category-check-grid"><% categories.forEach((category) => { %><label><input type="checkbox" name="categories" value="<%= category %>" <%= (values.categories || []).includes(category) ? 'checked' : '' %>><span><%= category %></span></label><% }) %></div>
       </fieldset>
-      <button type="submit" class="btn btn-primary w-100 registration-submit">Submit for verification <span aria-hidden="true">→</span></button>
+      <button id="registration-submit" type="submit" class="btn btn-primary w-100 registration-submit">Create account <span aria-hidden="true">→</span></button>
     </form>
     <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
-    <div class="auth-footnote"><span class="secure-dot"></span>An administrator must verify your campus ID before sign-in.</div>
+    <div class="auth-footnote"><span class="secure-dot"></span><span id="registration-guidance">Students and faculty can sign in as soon as they register.</span></div>
   </section>
 </main>
 <script>
   const roleField = document.getElementById('role');
   const specialtyFieldset = document.getElementById('registration-specialties');
+  const registrationSubmit = document.getElementById('registration-submit');
+  const registrationGuidance = document.getElementById('registration-guidance');
   const updateSpecialtiesVisibility = () => {
-    specialtyFieldset.classList.toggle('d-none', roleField.value !== 'staff');
+    const isTechnician = roleField.value === 'staff';
+    specialtyFieldset.classList.toggle('d-none', !isTechnician);
+    registrationSubmit.firstChild.textContent = isTechnician ? 'Submit for verification ' : 'Create account ';
+    registrationGuidance.textContent = isTechnician
+      ? 'An administrator must verify your technician account before sign-in.'
+      : 'Students and faculty can sign in as soon as they register.';
   };
   roleField.addEventListener('change', updateSpecialtiesVisibility);
   updateSpecialtiesVisibility();
+</script>
+<script>
+  const passwordField = document.getElementById('password');
+  const passwordToggle = document.querySelector('.password-toggle');
+  passwordToggle.addEventListener('click', () => {
+    const showPassword = passwordField.type === 'password';
+    passwordField.type = showPassword ? 'text' : 'password';
+    passwordToggle.textContent = showPassword ? 'Hide' : 'Show';
+    passwordToggle.setAttribute('aria-label', `${showPassword ? 'Hide' : 'Show'} password`);
+    passwordToggle.setAttribute('aria-pressed', String(showPassword));
+  });
 </script>
 <%- include('partials/footer') %>

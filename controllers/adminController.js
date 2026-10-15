@@ -9,7 +9,7 @@ exports.getVerifications = async (req, res) => {
   const accounts = await db.all(
     `SELECT id, full_name, email, unique_id, role, verification_status, created_at
      FROM users
-     WHERE role != 'admin'
+     WHERE role = 'staff'
      ORDER BY CASE verification_status
        WHEN 'Pending' THEN 0
        WHEN 'Verifying' THEN 1
@@ -34,13 +34,13 @@ exports.postVerification = async (req, res) => {
 
   await db.ready;
   const account = await db.get(
-    "SELECT id, unique_id, verification_status FROM users WHERE id = ? AND role != 'admin'",
+    "SELECT id, unique_id, verification_status FROM users WHERE id = ? AND role = 'staff'",
     [userId]
   );
   if (!account) {
     return res.status(404).render('error', {
       title: 'Account not found',
-      message: 'That account does not exist or cannot be reviewed here.'
+      message: 'That technician account does not exist or cannot be reviewed here.'
     });
   }
   if (status === 'Accepted' && !/^\d{4,32}$/.test(account.unique_id || '')) {
@@ -53,7 +53,7 @@ exports.postVerification = async (req, res) => {
 
   if (account.verification_status !== status) {
     await db.run(
-      "UPDATE users SET verification_status = ? WHERE id = ? AND role != 'admin'",
+      "UPDATE users SET verification_status = ? WHERE id = ? AND role = 'staff'",
       [status, userId]
     );
   }

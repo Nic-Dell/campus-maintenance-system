@@ -213,6 +213,9 @@ async function migrateMysql() {
     CONSTRAINT fk_feedback_user FOREIGN KEY (user_id) REFERENCES users(id)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
   await mysqlPool.query("UPDATE users SET verification_status = 'Accepted' WHERE role = 'admin'");
+  await mysqlPool.query(
+    "UPDATE users SET verification_status = 'Accepted' WHERE role IN ('student', 'faculty')"
+  );
 
   const [requestColumns] = await mysqlPool.query('SHOW COLUMNS FROM maintenance_requests');
   const requestColumnNames = new Set(requestColumns.map((column) => column.Field));
@@ -323,6 +326,9 @@ async function migrateSqlite() {
   )`);
   await run('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_unique_id ON users(unique_id)');
   await run("UPDATE users SET verification_status = 'Accepted' WHERE role = 'admin'");
+  await run(
+    "UPDATE users SET verification_status = 'Accepted' WHERE role IN ('student', 'faculty')"
+  );
 
   const requestColumns = await all('PRAGMA table_info(maintenance_requests)');
   const requestColumnNames = new Set(requestColumns.map((column) => column.name));

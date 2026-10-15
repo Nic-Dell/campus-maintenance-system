@@ -14,11 +14,25 @@
       <label class="field-label" for="email">Campus email</label>
       <input id="email" name="email" type="email" class="form-control" placeholder="you@campus.edu" value="<%= values.email || '' %>" autocomplete="username" maxlength="254" required>
       <label class="field-label mt-3" for="password">Password</label>
-      <input id="password" name="password" type="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+      <div class="password-field">
+        <input id="password" name="password" type="password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+        <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false" aria-controls="password">Show</button>
+      </div>
       <button type="submit" class="btn btn-primary w-100 auth-submit">Sign in <span aria-hidden="true">→</span></button>
     </form>
     <p class="auth-switch">New to Campus Care? <a href="/register">Create an account</a></p>
     <div class="auth-footnote"><span class="secure-dot"></span>Administrators sign in with the account configured for the system.</div>
   </section>
 </main>
+<script>
+  const passwordField = document.getElementById('password');
+  const passwordToggle = document.querySelector('.password-toggle');
+  passwordToggle.addEventListener('click', () => {
+    const showPassword = passwordField.type === 'password';
+    passwordField.type = showPassword ? 'text' : 'password';
+    passwordToggle.textContent = showPassword ? 'Hide' : 'Show';
+    passwordToggle.setAttribute('aria-label', `${showPassword ? 'Hide' : 'Show'} password`);
+    passwordToggle.setAttribute('aria-pressed', String(showPassword));
+  });
+</script>
 <%- include('partials/footer') %>
