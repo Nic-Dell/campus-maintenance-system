@@ -286,13 +286,6 @@ exports.postStatus = async (req, res) => {
     req.session.notice = { type: 'danger', message: 'Work photos must be valid JPEG, PNG, or WebP images.' };
     return res.redirect(`/requests/${id}`);
   }
-  if (request.status !== status && !note) {
-    req.session.notice = {
-      type: 'danger',
-      message: 'Add a short update note to explain this status change.'
-    };
-    return res.redirect(`/requests/${id}`);
-  }
   if (status === 'In Progress' && !beforeFile && !request.before_image) {
     req.session.notice = { type: 'danger', message: 'Upload a before-work photo before marking this request In Progress.' };
     return res.redirect(`/requests/${id}`);

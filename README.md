@@ -26,7 +26,7 @@ Campus Maintenance System, built for the Node.js and Express Round 1 campus-syst
 - Secure password hashing, server-side sessions, private request ownership, admin verification, and specialty-scoped technician access.
 - Validated campus requests with categories, CSPC locations, room/area, priority, and description.
 - Automatic category-matched technician assignment balances active workload among administrator-verified technicians. Urgent and high-priority requests appear first in technician queues; when no eligible technician is available, a qualified technician can claim the unassigned request.
-- Technician request acceptance and assignment, with status changes limited to the assigned technician or an administrator and a reporter-visible note required for every status change.
+- Technician request acceptance and assignment, with status changes limited to the assigned technician or an administrator.
 - User profiles with private profile photos; technicians can add, change, and remove their specialties.
 - Optional issue-area photos and required technical-team before/after photos at work start and completion. Private images are authenticated and limited to JPEG, PNG, or WebP files of 5 MB each.
 - Persistent MySQL/MariaDB storage, searchable/filterable request queues, summary counts, and request history.
