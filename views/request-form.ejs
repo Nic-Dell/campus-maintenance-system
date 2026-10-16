@@ -16,12 +16,58 @@
         <div><label class="field-label" for="room">Room or area <span class="optional-label">Optional</span></label><input id="room" name="room" type="text" class="form-control" placeholder="e.g. Room 204 or east entrance" value="<%= values.room || '' %>" maxlength="40"></div>
       </div>
       <label class="field-label" for="description">Tell us what’s going on</label>
-      <textarea id="description" name="description" class="form-control" rows="5" placeholder="What did you notice? When did it start? Is there anything else that would help our team?" minlength="20" maxlength="2000" required><%= values.description || '' %></textarea>
+      <textarea id="description" name="description" class="form-control" rows="5" placeholder="What did you notice? When did it start? Is there anything else that would help our team?" minlength="20" maxlength="2000" aria-describedby="description-count" required><%= values.description || '' %></textarea>
+      <small id="description-count" class="description-counter" aria-live="polite"></small>
       <label class="field-label mt-3" for="report_image">Area photo <span class="optional-label">Optional · JPEG, PNG, or WebP · max 5 MB</span></label>
       <input id="report_image" name="report_image" type="file" class="form-control image-upload" accept="image/jpeg,image/png,image/webp">
+      <div id="report-image-preview" class="report-image-preview" hidden>
+        <img id="report-image-preview-image" alt="Preview of selected area photo">
+        <div><span id="report-image-name"></span><button id="remove-report-image" type="button" class="btn btn-quiet">Remove photo</button></div>
+      </div>
       <div class="form-note"><span>Campus intelligence</span> Similar reports are grouped by location in Campus Pulse. Priority-based service targets are monitored in Campus SLA Watch.</div>
       <div class="form-actions"><a href="/dashboard" class="btn btn-quiet">Cancel</a><button type="submit" class="btn btn-primary">Submit campus request <span aria-hidden="true">→</span></button></div>
     </form>
   </section>
 </main>
+<script>
+  const descriptionField = document.getElementById('description');
+  const descriptionCount = document.getElementById('description-count');
+  const updateDescriptionCount = () => {
+    descriptionCount.textContent =
+      `${descriptionField.value.length} / ${descriptionField.maxLength} characters (minimum ${descriptionField.minLength})`;
+  };
+  descriptionField.addEventListener('input', updateDescriptionCount);
+  updateDescriptionCount();
+
+  const reportImageField = document.getElementById('report_image');
+  const reportImagePreview = document.getElementById('report-image-preview');
+  const reportImagePreviewImage = document.getElementById('report-image-preview-image');
+  const reportImageName = document.getElementById('report-image-name');
+  let previewUrl = null;
+  const clearReportImagePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    reportImageField.value = '';
+    reportImagePreviewImage.removeAttribute('src');
+    reportImagePreview.hidden = true;
+  };
+
+  reportImageField.addEventListener('change', () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    const file = reportImageField.files[0];
+    if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      reportImagePreview.hidden = true;
+      return;
+    }
+    previewUrl = URL.createObjectURL(file);
+    reportImagePreviewImage.src = previewUrl;
+    reportImageName.textContent = file.name;
+    reportImagePreview.hidden = false;
+  });
+  document.getElementById('remove-report-image').addEventListener('click', clearReportImagePreview);
+  window.addEventListener('pagehide', () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  });
+</script>
 <%- include('partials/footer') %>

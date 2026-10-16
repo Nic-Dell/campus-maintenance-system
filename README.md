@@ -24,7 +24,7 @@ Campus Maintenance System, built for the Node.js and Express Round 1 campus-syst
 - Formal, responsive sign-in and student/faculty/technical-team registration with a unique campus ID.
 - Students and faculty can sign in immediately after registration; administrator-only campus-ID verification is required for technical team accounts.
 - Secure password hashing, server-side sessions, private request ownership, admin verification, and specialty-scoped technician access.
-- Validated campus requests with categories, CSPC locations, room/area, priority, and description.
+- Validated campus requests with categories, CSPC locations, room/area, priority, and description, with a live description counter and optional area-photo preview.
 - Automatic category-matched technician assignment balances active workload among administrator-verified technicians. Urgent and high-priority requests appear first in technician queues; when no eligible technician is available, a qualified technician can claim the unassigned request.
 - Technician request acceptance and assignment, with status changes limited to the assigned technician or an administrator and a reporter-visible note required for every status change.
 - User profiles with private profile photos; technicians can add, change, and remove their specialties.
