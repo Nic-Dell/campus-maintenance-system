@@ -89,6 +89,15 @@ function form(values) {
 
 test('accounts, request privacy, staff workflow, and Campus Pulse work end to end', async () => {
   const visitor = client();
+  const loginPage = await visitor('/login');
+  assert.equal(loginPage.status, 200);
+  assert.match(await loginPage.text(), /aria-label="Show password"/);
+  const registrationPage = await visitor('/register');
+  assert.equal(registrationPage.status, 200);
+  const registrationHtml = await registrationPage.text();
+  assert.match(registrationHtml, /Students and faculty can sign in as soon as they register/);
+  assert.match(registrationHtml, /aria-label="Show password"/);
+
   const denied = await visitor('/dashboard');
   assert.equal(denied.status, 302);
   assert.equal(denied.headers.get('location'), '/login');
@@ -110,7 +119,7 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   }));
   assert.equal(registered.status, 302);
   assert.equal(registered.headers.get('location'), '/login');
-  assert.equal((await db.get('SELECT verification_status FROM users WHERE email = ?', ['avery@campus.test'])).verification_status, 'Pending');
+  assert.equal((await db.get('SELECT verification_status FROM users WHERE email = ?', ['avery@campus.test'])).verification_status, 'Accepted');
 
   const staff = client();
   await staff('/login', form({
@@ -120,8 +129,9 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   const verificationPage = await staff('/admin/verifications');
   assert.equal(verificationPage.status, 200);
   const verificationHtml = await verificationPage.text();
-  assert.match(verificationHtml, /20260001/);
-  assert.match(verificationHtml, /Account IDs are displayed for review/);
+  assert.doesNotMatch(verificationHtml, /20260001/);
+  assert.match(verificationHtml, /No technicians to review/);
+  assert.match(verificationHtml, /Compare technician campus IDs/);
   assert.doesNotMatch(verificationHtml, /name="unique_id"/);
   const analyticsPage = await staff('/admin/analytics');
   assert.equal(analyticsPage.status, 200);
@@ -133,34 +143,8 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   }));
   assert.equal(adminChangeAttempt.status, 404);
 
-  const pendingLogin = await visitor('/login', form({
-    email: 'avery@campus.test',
-    password: 'ValidPassword123'
-  }));
-  assert.equal(pendingLogin.status, 403);
-  assert.match(await pendingLogin.text(), /awaiting administrator verification/);
-
-  const markVerifying = await staff(`/admin/verifications/${studentId}`, form({ status: 'Verifying' }));
-  assert.equal(markVerifying.status, 302);
-  assert.equal((await db.get('SELECT verification_status FROM users WHERE email = ?', ['avery@campus.test'])).verification_status, 'Verifying');
-  const verifyingLogin = await visitor('/login', form({
-    email: 'avery@campus.test',
-    password: 'ValidPassword123'
-  }));
-  assert.equal(verifyingLogin.status, 403);
-
-  const rejectStudent = await staff(`/admin/verifications/${studentId}`, form({ status: 'Rejected' }));
-  assert.equal(rejectStudent.status, 302);
-  assert.equal((await db.get('SELECT verification_status FROM users WHERE email = ?', ['avery@campus.test'])).verification_status, 'Rejected');
-  const rejectedStudentLogin = await visitor('/login', form({
-    email: 'avery@campus.test',
-    password: 'ValidPassword123'
-  }));
-  assert.equal(rejectedStudentLogin.status, 403);
-
-  const acceptStudent = await staff(`/admin/verifications/${studentId}`, form({ status: 'Accepted' }));
-  assert.equal(acceptStudent.status, 302);
-  assert.equal((await db.get('SELECT verification_status FROM users WHERE email = ?', ['avery@campus.test'])).verification_status, 'Accepted');
+  const studentVerificationAttempt = await staff(`/admin/verifications/${studentId}`, form({ status: 'Rejected' }));
+  assert.equal(studentVerificationAttempt.status, 404);
 
   const duplicate = await visitor('/register', form({
     full_name: 'Avery Student',
@@ -296,7 +280,10 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   }));
   assert.equal(facultyRegistration.status, 302);
   const facultyId = (await db.get('SELECT id FROM users WHERE email = ?', ['casey@campus.test'])).id;
-  await staff(`/admin/verifications/${facultyId}`, form({ status: 'Accepted' }));
+  assert.equal((await db.get(
+    'SELECT verification_status FROM users WHERE id = ?',
+    [facultyId]
+  )).verification_status, 'Accepted');
   await otherUser('/login', form({
     email: 'casey@campus.test',
     password: 'ValidPassword123'
@@ -420,10 +407,6 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   assert.equal(withdraw.status, 302);
   assert.equal(await db.get('SELECT id FROM maintenance_requests WHERE id = ?', [secondId]), undefined);
 
-  await staff(`/admin/verifications/${studentId}`, form({ status: 'Rejected' }));
-  const revokedSession = await visitor('/dashboard');
-  assert.equal(revokedSession.status, 403);
-
   const logout = await visitor('/logout');
   assert.equal(logout.status, 404);
   const loggedOut = await visitor('/logout', form({}));
@@ -450,6 +433,18 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   }));
   assert.equal(technicalRegistration.status, 302);
   const technicalId = (await db.get('SELECT id FROM users WHERE email = ?', ['taylor@campus.test'])).id;
+  assert.equal((await db.get(
+    'SELECT verification_status FROM users WHERE id = ?',
+    [technicalId]
+  )).verification_status, 'Pending');
+  const pendingTechnicianLogin = await technical('/login', form({
+    email: 'taylor@campus.test',
+    password: 'ValidPassword123'
+  }));
+  assert.equal(pendingTechnicianLogin.status, 403);
+  assert.match(await pendingTechnicianLogin.text(), /awaiting administrator verification/);
+  const technicianVerificationPage = await staff('/admin/verifications');
+  assert.match(await technicianVerificationPage.text(), /Taylor Technician/);
   await staff(`/admin/verifications/${technicalId}`, form({ status: 'Rejected' }));
   const rejectedLogin = await technical('/login', form({
     email: 'taylor@campus.test',

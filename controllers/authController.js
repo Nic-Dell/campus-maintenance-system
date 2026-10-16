@@ -108,12 +108,14 @@ exports.postRegister = async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const result = await db.run(
     'INSERT INTO users (full_name, email, unique_id, password, role, verification_status) VALUES (?, ?, ?, ?, ?, ?)',
-    [fullName, email, uniqueId, passwordHash, role, 'Pending']
+    [fullName, email, uniqueId, passwordHash, role, role === 'staff' ? 'Pending' : 'Accepted']
   );
   if (role === 'staff') await accounts.setTechnicianCategories(result.lastID, categories);
   req.session.notice = {
     type: 'success',
-    message: 'Your account request was submitted. An administrator must verify it before you can sign in.'
+    message: role === 'staff'
+      ? 'Your technician account was submitted for administrator verification.'
+      : 'Your account was created. You can sign in now.'
   };
   return res.redirect('/login');
 };

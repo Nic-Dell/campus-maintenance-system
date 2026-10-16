@@ -86,6 +86,10 @@ a { color: inherit; }
 .search-wrap input { width:100%; height:100%; border:0; outline:0; background:transparent; font:11px var(--font); color:var(--ink); }
 .search-wrap input::placeholder { color:#a0a9a4; }
 .form-select { border-color:#e2e6e1; border-radius:7px; color:#42544b; font-size:12px; }
+.password-field { position:relative; }
+.password-field .form-control { padding-right:64px; }
+.password-toggle { position:absolute; top:50%; right:10px; transform:translateY(-50%); padding:5px; border:0; background:transparent; color:var(--green); font:700 11px var(--font); cursor:pointer; }
+.password-toggle:focus-visible { outline:2px solid #78a9d4; outline-offset:2px; border-radius:3px; }
 .filter-select { width:140px; height:37px; font-size:11px; }
 .btn-filter { height:37px; padding:0 15px; border:1px solid #dce2dc; background:#fff; color:#52655a; font-size:11px; }
 .btn-filter:hover { background:#f0f4ef; }

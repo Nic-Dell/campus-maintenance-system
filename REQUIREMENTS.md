@@ -11,7 +11,7 @@ Campus Care is a campus maintenance system for reporting, tracking, and triaging
 | Student | Submit a campus request, provide a useful location and description, and follow updates to their own requests. |
 | Faculty member | Submit and track campus requests using the same private request workflow. |
 | Technical team | Select maintenance specialties, receive or claim matching campus requests, and record status changes after administrator approval. |
-| Administrator | Verify campus IDs; accept, reject, or mark accounts as verifying; and review maintenance analytics and exports. |
+| Administrator | Verify technical-team campus IDs; accept, reject, or mark technician accounts as verifying; and review maintenance analytics and exports. |
 
 ## Stakeholders
 
@@ -26,8 +26,8 @@ Campus Care is a campus maintenance system for reporting, tracking, and triaging
 | ID | Requirement |
 | --- | --- |
 | FR-01 | Visitors can create student, faculty, or technical-team accounts using a unique campus ID, a unique validated email address, and a password stored as a bcrypt hash. Technical-team registration must select one or more valid maintenance categories. Public registration must not grant administrator roles. |
-| FR-02 | New accounts remain Pending until an administrator marks them Verifying, Accepted, or Rejected. Only Accepted accounts can sign in or continue using protected pages. |
-| FR-03 | Administrators can review account type and campus ID, and accept, reject, or mark non-administrator accounts as Verifying. |
+| FR-02 | Student and faculty accounts are Accepted immediately after successful registration. Technical-team accounts remain Pending until an administrator marks them Verifying, Accepted, or Rejected. Only Accepted accounts can sign in or continue using protected pages. |
+| FR-03 | Administrators can review technical-team campus IDs and accept, reject, or mark technician accounts as Verifying. |
 | FR-04 | Signed-in students and faculty can submit a request with title, category, campus building, optional room/area, priority, sufficiently detailed description, and an optional JPEG, PNG, or WebP area photo up to 5 MB. |
 | FR-05 | Requests, photo metadata, service target deadlines, and initial timeline entries persist in MySQL/MariaDB and remain available after page refresh or server restart. |
 | FR-06 | Students and faculty can see, search, and filter their requests, view request details and status history, and withdraw their own requests only while the status is Open. |
@@ -63,14 +63,14 @@ Campus Care is a campus maintenance system for reporting, tracking, and triaging
 
 - **Actor:** Student, faculty member, or technical-team member.
 - **Precondition:** The person does not already have an account using the submitted email address.
-- **Steps:** Open registration; enter a name, email, unique campus ID number, password, and account type; technical-team members also select one or more maintenance specialties; submit; wait for an administrator to verify the ID and accept the account; sign in.
-- **Expected result:** The account is stored with a bcrypt password hash and Pending status. Only after acceptance does the user receive a session and reach the protected dashboard. Invalid or duplicate details are rejected with feedback.
+- **Steps:** Open registration; enter a name, email, unique campus ID number, password, and account type; technical-team members also select one or more maintenance specialties; submit. Students and faculty can sign in immediately; technicians wait for administrator verification.
+- **Expected result:** The account is stored with a bcrypt password hash. Student and faculty accounts are Accepted immediately; technical-team accounts are Pending until administrator acceptance. Invalid or duplicate details are rejected with feedback.
 
 ### UC-02 — Verify a campus account
 
 - **Actor:** Administrator.
-- **Precondition:** The administrator is signed in and a non-administrator account is awaiting review.
-- **Steps:** Open Admin verification; compare the submitted campus ID and account type with official campus records; mark the account Verifying, Accepted, or Rejected.
+- **Precondition:** The administrator is signed in and a technical-team account is awaiting review.
+- **Steps:** Open Admin verification; compare the technician's campus ID and specialties with official campus records; mark the account Verifying, Accepted, or Rejected.
 - **Expected result:** The status is saved. Only Accepted accounts can sign in or continue using protected pages.
 
 ### UC-03 — Submit a maintenance request
@@ -139,7 +139,7 @@ Campus Care is a campus maintenance system for reporting, tracking, and triaging
 ## Acceptance checks
 
 - Sign-in, sign-out, invalid credentials, unique campus ID validation, public registration, and attempted public administrator role assignment.
-- Pending, Verifying, Accepted, and Rejected account behavior; admin-only verification controls and access revocation.
+- Immediate student/faculty access; Pending, Verifying, Accepted, and Rejected technician behavior; admin-only technician verification controls and access revocation.
 - Anonymous dashboard access, reporter-to-reporter request access, and student-to-staff status update attempts.
 - Required-field and invalid-category/location/status/priority validation.
 - Persistent request creation, staff update history, and withdrawal of an eligible Open request.
