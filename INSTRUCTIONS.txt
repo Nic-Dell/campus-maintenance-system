@@ -408,3 +408,55 @@ account for the submitted work.
 
 TOTAL 100%
 (100 pts)
+
+
+Submit the following:
+1. GitHub Repository Link
+• Must contain the complete Node.js + Express project.
+• Repository must be accessible to the instructor.
+2. Requirements Document
+• Users and stakeholders
+• Functional requirements
+• Non-functional requirements
+• Use cases
+3. GitHub Collaboration
+Your repository must show:
+• Branches\
+• Commits
+• Issues
+• Pull Requests
+• Peer reviews
+• Contributions from all 3 members
+4. README.md
+Include:
+• Project description
+• Team members
+• Features
+• Installation/setup instructions
+• Test accounts
+• AI assistance disclosure
+5. Working System
+The system must have:
+• Functional pages
+
+• Forms
+• Stored data
+• Login/session
+• Basic access control
+• Input validation
+
+Before submitting:
+• System runs properly
+• GitHub repository is accessible
+• All 3 members have contributed
+• Pull Requests and reviews are visible
+• Requirements document is complete
+• README is complete
+• .env and passwords are NOT uploaded
+• AI assistance is disclosed
+Google Classroom Private Comment
+Team Name:
+System:
+Members:
+GitHub Repository:
+

@@ -14,7 +14,7 @@
   </section>
 
   <section class="pulse-panel">
-    <div class="pulse-copy"><span class="pulse-orbit">CP</span><div><span class="eyebrow">REPEATED ISSUE MONITORING</span><h2>Campus Pulse</h2><p>Unresolved reports are grouped by building and category to identify recurring maintenance hotspots.</p></div></div>
+    <div class="pulse-copy"><span class="pulse-orbit">CP</span><div><span class="eyebrow">REPEATED ISSUE MONITORING</span><h2>Campus Pulse</h2><p>Helps facilities teams spot recurring issues. A hotspot appears when at least two Open or In Progress requests share the same building and category. Resolved requests do not count.</p></div></div>
     <% if (hotspots.length) { %>
       <div class="pulse-hotspots">
         <% hotspots.forEach((spot) => { %>
@@ -26,7 +26,7 @@
         <% }) %>
       </div>
     <% } else { %>
-      <div class="pulse-empty"><span>✦</span><div><strong>All clear for now.</strong><small>When 2 or more open reports share a campus location and category, that hotspot appears here.</small></div></div>
+      <div class="pulse-empty"><span>✦</span><div><strong>No repeated unresolved issues</strong><small>Submit two Open or In Progress reports for the same building and maintenance category to surface a hotspot.</small></div></div>
     <% } %>
   </section>
 
@@ -55,7 +55,7 @@
         <% requests.forEach((request) => { %>
           <a class="request-row <%= request.priority === 'Urgent' ? 'request-row-urgent' : '' %>" href="/requests/<%= request.id %>">
             <div class="request-category-icon icon-<%= request.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') %>"><%= ({Electrical:'ϟ',Plumbing:'≈','Heating & Cooling':'☼',Cleaning:'✧',Furniture:'▱',Safety:'＋',Technology:'⌘',Other:'✳'})[request.category] %></div>
-            <div class="request-row-main"><div class="request-title-line"><strong><%= request.title %></strong><span class="priority priority-<%= request.priority.toLowerCase() %>"><span></span><%= request.priority %></span></div><div class="request-meta"><span><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></span><span class="meta-divider">·</span><span><%= request.category %></span><% if (staffView) { %><span class="meta-divider">·</span><span>By <%= request.reporter_name %></span><% } %><% if (request.status !== 'Resolved') { %><span class="sla-request-label <%= request.is_overdue ? 'is-overdue' : request.due_soon ? 'is-due-soon' : '' %>"><%= request.is_overdue ? 'Past target' : request.due_soon ? 'Due within 24h' : 'Target ' + new Date(`${request.due_at.replace(' ', 'T')}Z`).toLocaleDateString() %></span><% } %></div></div>
+            <div class="request-row-main"><div class="request-title-line"><strong><%= request.title %></strong><span class="priority priority-<%= request.priority.toLowerCase() %>"><span></span><%= request.priority %></span></div><div class="request-meta"><span><%= request.building %><%= request.room ? ` · ${request.room}` : '' %></span><span class="meta-divider">·</span><span><%= request.category %></span><% if (staffView) { %><span class="meta-divider">·</span><span>By <%= request.reporter_name %></span><% } %><% if (request.status !== 'Resolved') { %><span class="sla-request-label <%= request.is_overdue ? 'is-overdue' : request.due_soon ? 'is-due-soon' : '' %>"><%= request.is_overdue ? 'Past target' : request.due_soon ? 'Due within 24h' : 'Target ' + new Date(`${request.due_at.replace(' ', 'T')}Z`).toLocaleDateString() %></span><% } %><% if (requestCta && request.status === 'Resolved') { %><span class="review-prompt <%= request.feedback_rating ? 'review-complete' : '' %>"><%= request.feedback_rating ? `Technician review · ${request.feedback_rating}/5` : 'Review technician in request details' %></span><% } %></div></div>
             <div class="request-row-side"><span class="status-pill status-<%= request.status.toLowerCase().replace(' ', '-') %>"><%= request.status %></span><% if (request.priority === 'Urgent') { %><span class="priority-urgent-label">Urgent priority</span><% } %><% if (technicianView && Number(request.assigned_to) === Number(user.id)) { %><span class="assignment-label">Accepted by you</span><% } %><small><%= new Date(`${request.created_at.replace(' ', 'T')}Z`).toLocaleDateString() %></small></div>
             <span class="row-chevron" aria-hidden="true">›</span>
           </a>

@@ -95,7 +95,8 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   const registrationPage = await visitor('/register');
   assert.equal(registrationPage.status, 200);
   const registrationHtml = await registrationPage.text();
-  assert.match(registrationHtml, /Students and faculty can sign in as soon as they register/);
+  assert.match(registrationHtml, /Students and instructors\/faculty can sign in after registration/);
+  assert.match(registrationHtml, /Instructor \/ faculty member/);
   assert.match(registrationHtml, /aria-label="Show password"/);
 
   const denied = await visitor('/dashboard');
@@ -316,6 +317,10 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   assert.match(staffDashboardHtml, /Overdue/);
   assert.match(staffDashboardHtml, /College of Engineering and Architecture - Acad I/);
   assert.match(staffDashboardHtml, /2 open reports/);
+  const maintenance = require('../models/maintenance');
+  const plumbingHotspot = (await maintenance.getPulse())
+    .find((spot) => spot.building === 'College of Engineering and Architecture - Acad I' && spot.category === 'Plumbing');
+  assert.equal(plumbingHotspot.reports, 2);
 
   const missingStatusNote = await staff(`/requests/${firstId}/status`, form({
     status: 'In Progress'
@@ -372,14 +377,45 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   const resolvedDetail = await visitor(`/requests/${firstId}`);
   const resolvedHtml = await resolvedDetail.text();
   assert.match(resolvedHtml, /After maintenance/);
-  assert.match(resolvedHtml, /How was the maintenance service/);
+  assert.match(resolvedHtml, /How did your technician do/);
+  assert.match(resolvedHtml, /Message to the technician/);
+  assert.match(resolvedHtml, /aria-label="5 stars"/);
+  const resolvedDashboard = await visitor('/dashboard');
+  assert.match(await resolvedDashboard.text(), /Review technician in request details/);
+  const noMessageReview = await visitor(`/requests/${firstId}/feedback`, form({
+    rating: '5',
+    comment: 'Nope'
+  }));
+  assert.equal(noMessageReview.status, 302);
+  assert.equal(await db.get('SELECT id FROM request_feedback WHERE request_id = ?', [firstId]), undefined);
+  await db.run("UPDATE maintenance_requests SET status = 'In Progress' WHERE id = ?", [secondId]);
+  const openFilter = await visitor('/dashboard?status=Open');
+  const openFilterHtml = await openFilter.text();
+  assert.match(openFilterHtml, /No matching requests/);
+  assert.match(openFilterHtml, /option value="Open" selected/);
+  const progressFilter = await visitor('/dashboard?status=In%20Progress');
+  const progressFilterHtml = await progressFilter.text();
+  assert.match(progressFilterHtml, /Another leaking sink/);
+  assert.match(progressFilterHtml, /option value="In Progress" selected/);
+  const resolvedFilter = await visitor('/dashboard?status=Resolve');
+  const resolvedFilterHtml = await resolvedFilter.text();
+  assert.match(resolvedFilterHtml, /Leaking study-room sink/);
+  assert.match(resolvedFilterHtml, /option value="Resolved" selected/);
+  assert.doesNotMatch(resolvedFilterHtml, /Another leaking sink/);
+  const allStatusFilter = await visitor('/dashboard?status=');
+  const allStatusHtml = await allStatusFilter.text();
+  assert.match(allStatusHtml, /Leaking study-room sink/);
+  assert.match(allStatusHtml, /Another leaking sink/);
+  await db.run("UPDATE maintenance_requests SET status = 'Open' WHERE id = ?", [secondId]);
+  assert.equal((await maintenance.getPulse())
+    .some((spot) => spot.building === 'College of Engineering and Architecture - Acad I' && spot.category === 'Plumbing'), false);
   const feedbackSave = await visitor(`/requests/${firstId}/feedback`, form({
     rating: '5',
-    comment: '=2+2'
+    comment: '=2+2*2'
   }));
   assert.equal(feedbackSave.status, 302);
   const formulaSafeCsv = await staff('/admin/analytics/export.csv');
-  assert.match(await formulaSafeCsv.text(), /'=2\+2/);
+  assert.match(await formulaSafeCsv.text(), /'=2\+2\*2/);
   const feedbackEdit = await visitor(`/requests/${firstId}/feedback`, form({
     rating: '4',
     comment: 'Updated service feedback'
@@ -391,6 +427,11 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   );
   assert.equal(savedFeedback.rating, 4);
   assert.equal(savedFeedback.comment, 'Updated service feedback');
+  const reviewedDetail = await visitor(`/requests/${firstId}`);
+  const reviewedHtml = await reviewedDetail.text();
+  assert.match(reviewedHtml, /REPORTER REVIEW/);
+  assert.match(reviewedHtml, /Update your technician review/);
+  assert.match(reviewedHtml, /Updated service feedback/);
   assert.equal((await db.get(
     'SELECT COUNT(*) AS count FROM request_feedback WHERE request_id = ?',
     [firstId]
@@ -526,6 +567,46 @@ test('accounts, request privacy, staff workflow, and Campus Pulse work end to en
   )).note, 'Accepted by Taylor Electrical Technician');
   const acceptedDetail = await technical(`/requests/${electricalId}`);
   assert.match(await acceptedDetail.text(), /Update this request/);
+  const instructorWorkStart = await technical(`/requests/${electricalId}/status`, multipart({
+    status: 'In Progress',
+    note: 'Technician started work on the reported electrical issue.'
+  }, { before_image: samplePng }));
+  assert.equal(instructorWorkStart.status, 302);
+  const instructorWorkComplete = await technical(`/requests/${electricalId}/status`, multipart({
+    status: 'Resolved',
+    note: 'Electrical issue repaired and checked.'
+  }, { after_image: samplePng }));
+  assert.equal(instructorWorkComplete.status, 302);
+  const instructorReviewPage = await otherUser(`/requests/${electricalId}`);
+  assert.equal(instructorReviewPage.status, 200);
+  assert.match(await instructorReviewPage.text(), /How did your technician do/);
+  const instructorReviewSave = await otherUser(`/requests/${electricalId}/feedback`, form({
+    rating: '5',
+    comment: 'The repair was completed promptly.'
+  }));
+  assert.equal(instructorReviewSave.status, 302);
+  const instructorReview = await db.get(
+    'SELECT user_id, rating, comment FROM request_feedback WHERE request_id = ?',
+    [electricalId]
+  );
+  assert.equal(Number(instructorReview.user_id), Number(facultyId));
+  assert.equal(instructorReview.rating, 5);
+  assert.equal(instructorReview.comment, 'The repair was completed promptly.');
+  const technicianReviewView = await technical(`/requests/${electricalId}`);
+  const technicianReviewHtml = await technicianReviewView.text();
+  assert.match(technicianReviewHtml, /Review for Taylor Electrical Technician/);
+  assert.match(technicianReviewHtml, /The repair was completed promptly/);
+  const activeTechnicianWork = await otherUser('/requests', form({
+    ...requestFields('Additional electrical queue request'),
+    category: 'Electrical',
+    priority: 'Normal'
+  }));
+  assert.equal(activeTechnicianWork.status, 302);
+  const activeTechnicianRequestId = Number(activeTechnicianWork.headers.get('location').split('/').pop());
+  assert.equal(Number((await db.get(
+    'SELECT assigned_to FROM maintenance_requests WHERE id = ?',
+    [activeTechnicianRequestId]
+  )).assigned_to), Number(technicalId));
 
   const secondTechnician = client();
   const secondTechRegistration = await secondTechnician('/register', form({

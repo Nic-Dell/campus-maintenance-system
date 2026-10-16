@@ -20,7 +20,7 @@
       </section>
     <% } %>
     <% if (canClaim) { %><form action="/requests/<%= request.id %>/accept" method="POST" class="accept-request-panel"><div><span class="eyebrow">MATCHES YOUR SPECIALTIES</span><strong>Accept this campus request</strong><p>Once accepted, it will be assigned to you and you can update its work status.</p></div><button type="submit" class="btn btn-primary">Accept request</button></form><% } %>
-    <% if (staffView && (user.role === 'staff' || Number(request.assigned_to) === Number(user.id))) { %>
+    <% if (staffView && (user.role === 'admin' || user.role === 'staff' && Number(request.assigned_to) === Number(user.id))) { %>
       <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update" enctype="multipart/form-data" id="staff-update-form">
         <div><span class="eyebrow"><%= user.role === 'admin' ? 'CAMPUS OPERATIONS' : 'TECHNICAL TEAM WORKSPACE' %></span><h2>Update this request</h2><p>Attach a before-work photo when work begins and an after-work photo before resolving the request.</p></div>
         <label class="field-label" for="status">Status</label>
@@ -34,19 +34,27 @@
         <button type="submit" class="btn btn-primary mt-3">Save update</button>
       </form>
     <% } %>
+    <% if (request.feedback_rating) { %>
+      <section class="review-summary" aria-labelledby="review-summary-title">
+        <div class="review-summary-heading"><div><span class="eyebrow">REPORTER REVIEW</span><h2 id="review-summary-title">Review for <%= request.assignee_name || 'the maintenance team' %></h2></div><span class="review-score"><strong><%= request.feedback_rating %></strong><span>out of 5</span></span></div>
+        <% if (request.feedback_comment) { %><blockquote><%= request.feedback_comment %></blockquote><% } else { %><p class="review-no-comment">No written comment was provided.</p><% } %>
+        <small>Last updated <%= new Date(`${request.feedback_updated_at.replace(' ', 'T')}Z`).toLocaleString() %></small>
+      </section>
+    <% } %>
     <% if (canGiveFeedback) { %>
       <form action="/requests/<%= request.id %>/feedback" method="POST" class="feedback-panel">
-        <span class="eyebrow">SERVICE FEEDBACK</span>
-        <h2>How was the maintenance service?</h2>
-        <p>Your rating helps campus administration monitor service quality.</p>
-        <label class="field-label" for="rating">Rating</label>
-        <select id="rating" name="rating" class="form-select" required>
-          <option value="">Choose a rating</option>
-          <% [5, 4, 3, 2, 1].forEach((rating) => { %><option value="<%= rating %>" <%= Number(request.feedback_rating) === rating ? 'selected' : '' %>><%= rating %> - <%= ({ 5: 'Excellent', 4: 'Good', 3: 'Fair', 2: 'Poor', 1: 'Very poor' })[rating] %></option><% }) %>
-        </select>
-        <label class="field-label mt-3" for="feedback-comment">Comment <span class="optional-label">Optional</span></label>
-        <textarea id="feedback-comment" name="comment" class="form-control" maxlength="1000" rows="3" placeholder="Share a short comment"><%= request.feedback_comment || '' %></textarea>
-        <button type="submit" class="btn btn-primary mt-3"><%= request.feedback_rating ? 'Update feedback' : 'Submit feedback' %></button>
+        <span class="eyebrow">RATE YOUR TECHNICIAN</span>
+        <h2><%= request.feedback_rating ? 'Update your technician review' : 'How did your technician do?' %></h2>
+        <p>Your review is shared with <%= request.assignee_name || 'the maintenance team' %> and campus administration.</p>
+        <fieldset class="star-rating-fieldset">
+          <legend class="field-label">Select a star rating</legend>
+          <div class="star-rating" role="radiogroup" aria-label="Rate the technician from 1 to 5 stars">
+            <% [5, 4, 3, 2, 1].forEach((rating) => { %><input id="rating-<%= rating %>" type="radio" name="rating" value="<%= rating %>" aria-label="<%= rating %> stars" <%= Number(request.feedback_rating) === rating ? 'checked' : '' %> required><label for="rating-<%= rating %>" title="<%= rating %> stars">★</label><% }) %>
+          </div>
+        </fieldset>
+        <label class="field-label mt-3" for="feedback-comment">Message to the technician</label>
+        <textarea id="feedback-comment" name="comment" class="form-control" minlength="5" maxlength="1000" rows="3" placeholder="Tell the technician about your experience (5 to 1,000 characters)" required><%= request.feedback_comment || '' %></textarea>
+        <button type="submit" class="btn btn-primary mt-3"><%= request.feedback_rating ? 'Update review' : 'Submit review' %></button>
       </form>
     <% } %>
     <div class="timeline-heading"><div><span class="eyebrow">KEEPING YOU IN THE LOOP</span><h2>Request timeline</h2></div></div>

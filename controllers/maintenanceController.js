@@ -39,7 +39,10 @@ const validLocations = [
 
 exports.getDashboard = async (req, res) => {
   const search = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 80) : '';
-  const status = typeof req.query.status === 'string' ? req.query.status : '';
+  const requestedStatus = typeof req.query.status === 'string' ? req.query.status.trim() : '';
+  const status = maintenance.STATUSES.find(
+    (candidate) => candidate.toLowerCase() === requestedStatus.toLowerCase()
+  ) || (requestedStatus.toLowerCase() === 'resolve' ? 'Resolved' : '');
   const staffView = isStaff(req.session.user);
   const categories = req.session.user.role === 'staff'
     ? await accounts.getTechnicianCategories(req.session.user.id)
@@ -199,10 +202,10 @@ exports.postFeedback = async (req, res) => {
   }
   const rating = Number(req.body.rating);
   const comment = typeof req.body.comment === 'string' ? req.body.comment.trim() : '';
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || comment.length > 1000) {
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || comment.length < 5 || comment.length > 1000) {
     req.session.notice = {
       type: 'danger',
-      message: 'Choose a rating from 1 to 5 and keep comments within 1,000 characters.'
+      message: 'Choose a rating from 1 to 5 and write a message between 5 and 1,000 characters.'
     };
     return res.redirect(`/requests/${id}`);
   }

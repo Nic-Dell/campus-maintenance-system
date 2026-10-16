@@ -98,12 +98,13 @@ async function listRequests({ userId, isStaff, role, categories = [], search = '
   }
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   return db.all(
-    `SELECT r.*, u.full_name AS reporter_name,
+    `SELECT r.*, u.full_name AS reporter_name, f.rating AS feedback_rating,
             CASE WHEN r.status != 'Resolved' AND r.due_at <= datetime('now') THEN 1 ELSE 0 END AS is_overdue,
             CASE WHEN r.status != 'Resolved' AND r.due_at > datetime('now')
                    AND r.due_at <= datetime('now', '+24 hours') THEN 1 ELSE 0 END AS due_soon
        FROM maintenance_requests r
        JOIN users u ON u.id = r.created_by
+       LEFT JOIN request_feedback f ON f.request_id = r.id
        ${where}
        ORDER BY CASE r.priority WHEN 'Urgent' THEN 0 WHEN 'High' THEN 1 WHEN 'Normal' THEN 2 ELSE 3 END,
                 r.created_at DESC
@@ -171,7 +172,7 @@ async function getPulse() {
             MAX(CASE priority WHEN 'Urgent' THEN 4 WHEN 'High' THEN 3 WHEN 'Normal' THEN 2 ELSE 1 END) AS priority_score,
             MAX(updated_at) AS latest_report
        FROM maintenance_requests
-      WHERE status != 'Resolved'
+      WHERE status IN ('Open', 'In Progress')
       GROUP BY building, category
      HAVING COUNT(*) >= 2
       ORDER BY priority_score DESC, reports DESC, latest_report DESC

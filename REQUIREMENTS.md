@@ -9,7 +9,7 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 | User | Goals |
 | --- | --- |
 | Student | Submit a campus request, provide a useful location and description, and follow updates to their own requests. |
-| Faculty member | Submit and track campus requests using the same private request workflow. |
+| Instructor / faculty member | Submit and track campus requests using the same private request workflow and review resolved work they reported. |
 | Technical team | Select maintenance specialties, receive or claim matching campus requests, and record status changes after administrator approval. |
 | Administrator | Verify technical-team campus IDs; accept, reject, or mark technician accounts as verifying; and review maintenance analytics and exports. |
 
@@ -35,14 +35,15 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 | FR-08 | Administrators can search/filter all campus requests. Technical team members can see and accept only unassigned requests matching their specialties and requests already assigned to them; only the assigned technician or an administrator can change request status. |
 | FR-09 | Technical team members must attach a before-work photo before moving assigned work to In Progress and an after-work photo before marking it Resolved. Status changes and evidence are attributed to the acting user and recorded in the request history. |
 | FR-10 | The dashboard summarizes total, open, in-progress, and resolved requests for the current reporter and provides campus operations summaries for staff and administrators. |
-| FR-11 | **Campus Pulse** groups unresolved requests by building and category. It displays a hotspot after at least two reports share a group and gives urgent/high-priority groups precedence. |
+| FR-11 | **Campus Pulse** groups Open and In Progress requests by building and category. It displays a hotspot after at least two unresolved reports share a group and gives urgent/high-priority groups precedence. Resolved requests are excluded. |
 | FR-12 | **Campus SLA Watch** assigns initial target times by priority (Urgent: 24 hours, High: 72 hours, Normal: 7 days, Low: 14 days), counts overdue and due-within-24-hours requests, and marks target status on request listings. |
 | FR-13 | Signed-in users can view and update their profile name, email, and private profile photo. Technical team members can add, change, and remove maintenance specialties from their profile. |
 | FR-14 | Invalid, missing, out-of-range, or unauthorized input receives a useful validation or access-denied response and is not accepted as a successful operation. |
 | FR-15 | New requests are automatically assigned to an accepted technical-team account qualified for that category, balancing active assigned workload. Requests with no eligible technician remain unassigned and claimable by matching staff; urgent/high-priority requests are ordered first in technician queues. |
-| FR-16 | The original requester can submit or update one 1–5 rating and optional comment for a resolved request. Other users cannot submit feedback for that request. |
-| FR-17 | Administrators can review aggregate request, priority, category, location, and feedback analytics. |
-| FR-18 | Administrators can export the campus request report, including assignment and submitted feedback, as CSV or PDF. CSV values are protected against spreadsheet formula execution. |
+| FR-16 | The original student or instructor/faculty reporter can submit or update one 1–5 star service review and a 5–1,000 character message for the assigned technician after their request is resolved. Other users cannot submit or change that review. |
+| FR-17 | Authorized users who can view a request can see its saved reporter review; administrators can review aggregate request, priority, category, location, and review analytics. |
+| FR-18 | Administrators can export the campus request report, including assignment and submitted reviews, as CSV or PDF. CSV values are protected against spreadsheet formula execution. |
+| FR-19 | The application presents a consistent, formal, responsive interface across authentication, dashboards, request workflows, profiles, and administration pages. |
 
 ## Non-functional requirements
 
@@ -52,7 +53,7 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 | NFR-02 | Protect passwords with bcrypt; use parameterized SQL; escape user-provided text in rendered pages; validate image content and size; store photos outside public web files; and keep secrets, uploaded files, and database backups out of source control. |
 | NFR-03 | Enforce authentication, request ownership, technician specialty/assignment, and administrator permissions on the server, not only through hidden links or UI controls. |
 | NFR-04 | Validate submitted data on the server and provide clear, actionable feedback. |
-| NFR-05 | The application supports common desktop and mobile viewport sizes and provides semantic labels and keyboard-operable forms. |
+| NFR-05 | The application supports common desktop and mobile viewport sizes, uses a consistent formal visual design, and provides semantic labels and keyboard-operable forms with visible focus states. |
 | NFR-06 | Keep route, controller, model, middleware, view, and configuration responsibilities separated. |
 | NFR-07 | A new local setup can initialize the database automatically and can run a repeatable test suite using the project's documented commands. |
 | NFR-08 | The initial release targets a classroom demonstration. Production deployment requires HTTPS, a durable session store, routine database backups, and operational monitoring. |
@@ -112,8 +113,8 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 
 - **Actor:** Maintenance staff, administrator, or dashboard user.
 - **Precondition:** At least two unresolved reports share a building and category.
-- **Steps:** Open the dashboard and review Campus Pulse.
-- **Expected result:** The repeated location/category appears with its report count; urgent/high-priority clusters appear first. Groups with fewer than two unresolved reports are not displayed.
+- **Steps:** Open the dashboard and review Campus Pulse. Compare the exact building and category on the unresolved requests.
+- **Expected result:** A building/category group appears only when at least two requests in Open or In Progress share both values; Resolved requests are excluded. The group shows its report count, and urgent/high-priority groups appear first.
 
 ### UC-09 — Automatically schedule a technician
 
@@ -122,12 +123,12 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 - **Steps:** Find administrator-accepted technicians with a matching specialty; assign the request to the matching technician with the fewest active requests; order urgent and high-priority work first in the technician queue.
 - **Expected result:** The detail page identifies the scheduled technician. If there is no verified technician for that category, the request remains unassigned and appears in matching technicians' claimable queue.
 
-### UC-10 — Rate resolved service
+### UC-10 — Review resolved maintenance service
 
-- **Actor:** Original request reporter.
+- **Actor:** Original student or instructor/faculty request reporter.
 - **Precondition:** The reporter's request is Resolved.
-- **Steps:** Open the request, select a 1–5 rating, optionally add a comment, and submit. Reopen the form later to update the rating or comment.
-- **Expected result:** One feedback record is saved per request; only its reporter can create or update it.
+- **Steps:** Open the resolved request, select a 1–5 star rating, write a 5–1,000 character message to the assigned technician, and submit. Reopen the form later to update the review.
+- **Expected result:** One review is saved per request and displayed on its detail page. Only the reporter can create or update it; other authorized viewers can read it.
 
 ### UC-11 — Review and export maintenance analytics
 
@@ -147,7 +148,9 @@ UniFix is a campus maintenance system for reporting, tracking, and triaging repa
 - Private request-area photos; required before/after technician evidence; rejection of invalid image content and excessive file size.
 - SLA target calculations for each priority and overdue/due-soon dashboard indicators.
 - Automatic assignment only to accepted technicians with matching specialties; workload balancing and unassigned fallback when no eligible technician exists.
-- Requester-only feedback after resolution, feedback editing, invalid-rating rejection, and one-record-per-request behavior.
+- Student- and instructor/faculty-reporter-only star reviews after resolution, required message validation, review editing, visible saved review content for the reporter and assigned technician, and one-review-per-request behavior.
+- Dashboard status filtering for Open, In Progress, Resolved (including the query alias `Resolve`), and all statuses.
+- Campus Pulse hotspot creation when two or more Open/In Progress reports share the same building and category; resolved reports do not count.
 - Administrator-only analytics and CSV/PDF downloads, including export content and spreadsheet-formula escaping.
 
 ## Out of scope

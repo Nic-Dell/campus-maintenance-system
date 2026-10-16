@@ -4,7 +4,7 @@
     <span class="eyebrow light-eyebrow">CAMPUS FACILITIES SERVICE</span>
     <h1>A well-maintained campus<br><em>supports learning.</em></h1>
     <p>Register with your campus ID to submit or manage campus requests. Technician accounts are verified by an administrator before access is enabled.</p>
-    <div class="story-proof"><span class="proof-mark">CC</span><span>Students and faculty can sign in as soon as they register.</span></div>
+    <div class="story-proof"><span class="proof-mark">CC</span><span>Students and instructors/faculty can sign in after registration.</span></div>
   </section>
   <section class="auth-card">
     <div class="auth-card-heading"><span class="eyebrow">GET STARTED</span><h2>Create your account</h2><p>Join your campus maintenance community.</p></div>
@@ -24,7 +24,7 @@
       <label class="field-label mt-3" for="role">I’m joining as a</label>
       <select id="role" name="role" class="form-select" required>
         <option value="student" <%= values.role === 'student' ? 'selected' : '' %>>Student</option>
-        <option value="faculty" <%= values.role === 'faculty' ? 'selected' : '' %>>Faculty member</option>
+        <option value="faculty" <%= values.role === 'faculty' ? 'selected' : '' %>>Instructor / faculty member</option>
         <option value="staff" <%= values.role === 'staff' ? 'selected' : '' %>>Technical team</option>
       </select>
       <fieldset class="specialty-fieldset <%= values.role === 'staff' ? '' : 'd-none' %>" id="registration-specialties">
@@ -35,7 +35,7 @@
       <button id="registration-submit" type="submit" class="btn btn-primary w-100 registration-submit">Create account <span aria-hidden="true">→</span></button>
     </form>
     <p class="auth-switch">Already have an account? <a href="/login">Sign in</a></p>
-    <div class="auth-footnote"><span class="secure-dot"></span><span id="registration-guidance">Students and faculty can sign in as soon as they register.</span></div>
+    <div class="auth-footnote"><span class="secure-dot"></span><span id="registration-guidance">Students and instructors/faculty can sign in after registration.</span></div>
   </section>
 </main>
 <script>
@@ -49,7 +49,7 @@
     registrationSubmit.firstChild.textContent = isTechnician ? 'Submit for verification ' : 'Create account ';
     registrationGuidance.textContent = isTechnician
       ? 'An administrator must verify your technician account before sign-in.'
-      : 'Students and faculty can sign in as soon as they register.';
+      : 'Students and instructors/faculty can sign in after registration.';
   };
   roleField.addEventListener('change', updateSpecialtiesVisibility);
   updateSpecialtiesVisibility();

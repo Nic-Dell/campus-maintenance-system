@@ -1,6 +1,6 @@
 # UniFix — Campus Maintenance System
 
-UniFix gives students and faculty one secure place to submit campus requests and follow their progress. Technicians choose their maintenance specialties, receive eligible assignments, document work, and leave a visible progress history.
+UniFix gives students and instructors/faculty one secure place to submit campus requests and follow their progress. Technicians choose their maintenance specialties, receive eligible assignments, document work, and leave a visible progress history.
 
 The documented users, stakeholders, requirements, and use cases are in [REQUIREMENTS.md](REQUIREMENTS.md).
 
@@ -12,9 +12,11 @@ UniFix is a browser-based campus maintenance system. It helps campus community m
 
 Campus Maintenance System, built for the Node.js and Express Round 1 campus-system project. Confirm the assigned system name with the instructor before submission if the team assignment differs.
 
+Repository: [Nic-Dell/campus-maintenance-system](https://github.com/Nic-Dell/campus-maintenance-system).
+
 ## Users and stakeholders
 
-- **Students and faculty** submit campus requests and check their own request timelines.
+- **Students and instructors/faculty** submit campus requests and check their own request timelines.
 - **Technical team members** choose specialties, accept matching requests, and record progress and resolution.
 - **Campus administrators** verify campus IDs, oversee maintenance operations, and access the campus-wide request queue.
 - **Facilities leadership and the campus community** benefit from safer, more reliable spaces and earlier visibility into repeated issues.
@@ -30,12 +32,13 @@ Campus Maintenance System, built for the Node.js and Express Round 1 campus-syst
 - User profiles with private profile photos; technicians can add, change, and remove their specialties.
 - Optional issue-area photos and required technical-team before/after photos at work start and completion. Private images are authenticated and limited to JPEG, PNG, or WebP files of 5 MB each.
 - Persistent MySQL/MariaDB storage, searchable/filterable request queues, summary counts, and request history.
+- A formal, responsive interface with consistent navigation, readable request summaries, accessible forms, and keyboard-visible focus states across public and signed-in pages.
 - Urgent requests are visually highlighted in red.
 - Students and faculty can withdraw their own requests while they are still open.
-- **Unique feature — Campus Pulse:** automatically groups unresolved reports by building and category. When at least two reports identify the same hotspot, the dashboard surfaces it, prioritizing urgent/high-priority clusters. This helps facilities staff notice recurring problems before they become larger disruptions.
+- **Unique feature — Campus Pulse:** groups Open and In Progress reports by exact campus building and maintenance category. A hotspot appears after at least two matching unresolved reports; Resolved reports do not count. Urgent/high-priority clusters appear first so facilities staff can spot recurring demand.
 - **Campus SLA Watch:** monitors each unresolved request against a priority-based service target and highlights overdue requests and those due within 24 hours.
-- Requesters can rate resolved services from 1–5 and update their feedback; ratings and optional comments appear in administrator analytics.
-- Admin-only analytics summarize request totals, priorities, categories, building demand, and average feedback. Administrators can download request and feedback reports in CSV or PDF formats.
+- The original student or instructor/faculty reporter can review a resolved service with a 1–5 star rating and a message to the assigned technician, edit that review later, and see the saved review on the request. Other users cannot submit or change it.
+- Admin-only analytics summarize request totals, priorities, categories, building demand, and average reporter rating. Administrators can download request and review data in CSV or PDF formats.
 
 ### Campus request locations
 
@@ -92,6 +95,10 @@ The request form offers the following campus locations:
 4. To provision a first administrator, set `ADMIN_EMAIL`, `ADMIN_UNIQUE_ID` (4-32 digits), and an `ADMIN_PASSWORD` of at least 12 characters (optionally `ADMIN_NAME`). Public registration cannot create administrator accounts.
 5. Optionally set `UPLOADS_PATH` to an absolute path to store private profile and request images outside the project folder.
 
+## User accounts and test setup
+
+There are no shared or hard-coded test passwords. Create the initial administrator with the private `ADMIN_EMAIL`, `ADMIN_UNIQUE_ID`, and `ADMIN_PASSWORD` values in `.env`. Register student and instructor/faculty test users through the registration page; technical-team test accounts require administrator verification before sign-in. Use team-approved test data during the showcase, and do not put account passwords in this README or GitHub.
+
 ## Database setup
 
 The application creates the `campus_maintenance` MySQL database, tables, and indexes on first start. Private request images are stored outside the public web directory in `data/campus-maintenance-uploads/` by default and are excluded from Git. On upgrade, student and faculty accounts are set to Accepted; existing technician verification statuses are retained, and new technician accounts begin Pending. Older technician accounts without a campus ID cannot be accepted; ask those people to register again with their campus ID. An existing administrator without a campus ID must be matched to `ADMIN_EMAIL` and assigned `ADMIN_UNIQUE_ID` in `.env`; its existing password does not need to be changed. Keep `.env`, database backups, and uploaded photos private.
@@ -143,15 +150,15 @@ Campus SLA Watch uses initial targets of Urgent: 24 hours, High: 72 hours, Norma
 
 ## Main use cases
 
-1. **Submit a campus request** — a signed-in student/faculty member chooses a category, location, and priority, describes the problem, and submits it. Matching technicians can accept and take responsibility for the request; its history is shown on the detail page.
+1. **Submit a campus request** — a signed-in student or instructor/faculty member chooses a category, location, and priority, describes the problem, and submits it. Matching technicians can accept and take responsibility for the request; its history is shown on the detail page.
 2. **Track a request** — the reporter opens their dashboard and sees the current status and chronological updates. They cannot view another user's request.
 3. **Accept and update work** — technicians see only unassigned requests in their chosen specialties and work assigned to them. They accept a request, then change its status with an optional note. The update appears in its timeline.
-4. **Spot a recurring issue** — the dashboard groups open reports by building and category. Clusters of two or more reports are shown in Campus Pulse to help teams identify hotspots.
+4. **Spot a recurring issue** — the dashboard groups Open and In Progress reports by exact building and maintenance category. Once two requests match both values, Campus Pulse shows the hotspot; a different category or a Resolved request does not count toward that threshold.
 
 ## Access control and data handling
 
 - Public registration accepts student, faculty, and technical-team roles and requires a unique 4-32 digit campus ID. Students and faculty are accepted immediately. Technical-team accounts must select one or more specialties and remain Pending until an administrator marks them Verifying, Accepted, or Rejected. Only Accepted accounts can sign in; the administrator verification queue contains technicians only.
-- Request pages require a session. Students/faculty can access only their own requests; technicians can access only requests in their specialties or assigned to them; administrators can access the campus queue.
+- Request pages require a session. Students/instructors/faculty can access only their own requests; technicians can access only requests in their specialties or assigned to them; administrators can access the campus queue.
 - All database writes use bound SQL parameters; submitted values are checked server-side, and EJS escapes interpolated text by default.
 - Sessions use an HTTP-only, same-site cookie, regenerate after sign-in, and expire after eight hours. Set `NODE_ENV=production` when deploying behind HTTPS.
 - The default Express MemoryStore is for a single-process classroom demonstration, not a production multi-instance deployment. Configure a durable session store before production use.
@@ -211,7 +218,7 @@ The assignment requires exactly three team members. Replace the name placeholder
 
 ## GitHub collaboration checklist
 
-The course requires visible, genuine collaboration: feature branches, task issues with assignees and expected results, conventional commits, pull requests linked to issues, substantive peer reviews, and a Project board reflecting real work. As currently checked, the remote repository has only `main` and its initial commit, no issues, and no pull requests; team-member names, reviews, and a Project board have not been evidenced here. Complete these requirements with the team and link the actual evidence before submission. Do not create retrospective or fabricated contributions.
+The course requires visible, genuine collaboration: feature branches, task issues with assignees and expected results, conventional commits, pull requests linked to issues, substantive peer reviews, and a Project board reflecting real work. At the latest repository check (2026-10-16), GitHub showed `main` and feature/fix branches, closed pull requests #1–#7, and no repository issues. Pull requests #1 and #4–#7 have an approval recorded from `Nic-Dell`; #2 and #3 have no approval recorded. No inline review threads were visible, so substantive discussion and whether the approver is a different team member still need confirmation. The Project board could not be verified. The local `main` tip is `Describe your changes here`, which is not a conventional commit message. The local checkout has only `main`, although remote feature branches exist. Before submission, create and link assigned issues and a real Project board, confirm meaningful teammate reviews and all three members' contributions, replace the member-name placeholders below, and use conventional commit messages going forward. Do not create retrospective or fabricated evidence.
 
 ## Known limitations
 
@@ -371,18 +378,3 @@ Create a GitHub Project from the repository's **Projects** tab and add columns/s
 - Ask every team member to test the installed application and be prepared to explain their changes, routes, data storage, validation, and access-control decisions.
 
 ========================================================================
-NOBODY IS ALLOWED TO RUN THIS BUT ME
-========================================================================
-# 1. Create and switch to a new feature branch
-git switch -c feature/your-feature-name
-
-# 2. Make your code changes in VS Code, then stage and commit them
-git add .
-git commit -m "feat: describe what you built or changed"
-
-# 3. Push the feature branch up to GitHub
-git push -u origin feature/your-feature-name
-
-========================================================================
-
-n0ooooooooooooo

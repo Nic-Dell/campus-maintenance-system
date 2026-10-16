@@ -7,7 +7,7 @@
     <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
     <div class="profile-summary">
       <% if (user.profile_image) { %><img class="profile-photo" src="/profile/image" alt="Profile photo for <%= user.full_name %>"><% } else { %><div class="profile-photo profile-photo-placeholder"><%= user.full_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() %></div><% } %>
-      <div><strong><%= user.full_name %></strong><span><%= user.role === 'staff' ? 'Technical team' : user.role === 'faculty' ? 'Faculty member' : user.role === 'admin' ? 'Administrator' : 'Student' %></span></div>
+      <div><strong><%= user.full_name %></strong><span><%= user.role === 'staff' ? 'Technical team' : user.role === 'faculty' ? 'Instructor / faculty member' : user.role === 'admin' ? 'Administrator' : 'Student' %></span></div>
     </div>
     <dl class="profile-details">
       <div><dt>Campus ID</dt><dd><%= user.unique_id || 'Not on file' %></dd></div>
