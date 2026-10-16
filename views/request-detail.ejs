@@ -20,7 +20,7 @@
       </section>
     <% } %>
     <% if (canClaim) { %><form action="/requests/<%= request.id %>/accept" method="POST" class="accept-request-panel"><div><span class="eyebrow">MATCHES YOUR SPECIALTIES</span><strong>Accept this campus request</strong><p>Once accepted, it will be assigned to you and you can update its work status.</p></div><button type="submit" class="btn btn-primary">Accept request</button></form><% } %>
-    <% if (staffView && (user.role === 'admin' || Number(request.assigned_to) === Number(user.id))) { %>
+    <% if (staffView && (user.role === 'staff' || Number(request.assigned_to) === Number(user.id))) { %>
       <form action="/requests/<%= request.id %>/status" method="POST" class="staff-update" enctype="multipart/form-data" id="staff-update-form">
         <div><span class="eyebrow"><%= user.role === 'admin' ? 'CAMPUS OPERATIONS' : 'TECHNICAL TEAM WORKSPACE' %></span><h2>Update this request</h2><p>Attach a before-work photo when work begins and an after-work photo before resolving the request.</p></div>
         <label class="field-label" for="status">Status</label>
